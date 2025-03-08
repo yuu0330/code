@@ -1,0 +1,615 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    height: 100vh;
+}
+
+/* ---- 修正下拉選單樣式 ---- */
+.dropdown {
+    width: 100%;
+    position: relative;
+}
+
+.dropbtn {
+    background-color: transparent;
+    color: white;
+    font-size: 1.3em;
+    padding: 15px 20px;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 使用 position: relative 讓下拉選單撐開，避免擋住歷史紀錄 */
+.dropdown-content {
+    display: none;
+    background-color: rgba(76, 175, 80, 0.95);
+    width: 100%;
+    flex-direction: column;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    position: relative;
+}
+
+.dropdown-content a {
+    padding: 12px 16px;
+    text-decoration: none;
+    color: white;
+    display: block;
+    transition: background 0.3s;
+}
+
+.dropdown-content a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 點擊展開下拉選單 */
+.dropdown.active .dropdown-content {
+    display: flex;
+}
+
+/* 讓歷史紀錄不被擋住 */
+.navbar a,
+.dropdown button {
+    position: relative;
+    z-index: 10;
+}
+
+/* 讓下拉選單顯示時不擋住其他導覽列 */
+.navbar {
+    background-color: rgba(76, 175, 80, 0.9);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+.navbar h1 {
+    color: #fff;
+    font-size: 1.8em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    width: 100%;
+}
+
+.navbar nav {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.navbar nav a {
+    color: white;
+    padding: 15px 20px;
+    text-decoration: none;
+    font-size: 1.3em;
+    display: block;
+    transition: 0.3s;
+}
+
+.navbar nav a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left: 5px solid white;
+}
+
+/* 內容區塊 */
+.content {
+    margin-left: 250px; 
+    width: calc(100% - 250px); 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding-top: 40px;
+}
+
+.page-title {
+    font-size: 42px; 
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* 針對 degree.html & results.html，確保標題有相同大小 */
+body[data-page="degree"] .page-title,
+body[data-page="results"] .page-title {
+    font-size: 42px; 
+    font-weight: bold;
+    text-align: center;
+}
+
+
+/* 針對 results.html 的圖表排列方式 */
+body[data-page="results"] .gauge-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    width: 100%;
+}
+
+body[data-page="results"] .gauge-container:nth-child(1) {
+    justify-content: center;
+}
+
+body[data-page="results"] .gauge-container:nth-child(2) {
+    justify-content: center;
+}
+
+/* 讓 degree 的 3 個圖表均勻排列 */
+body[data-page="degree"] .gauge-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 50px;
+    margin-top: 50px;
+}
+
+/* 讓 degree 的 3 個圖表大小一致 */
+body[data-page="degree"] .gauge-box,
+body[data-page="degree"] .wave-box,
+body[data-page="degree"] .yolo-box {
+    width: 450px; 
+    height: 380px;
+}
+
+/* 儀表圖 */
+.gauge-box {
+    width: 350px;
+    height: 300px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 15px;
+}
+
+/* 儀表圖內部數字與標題 */
+.gauge-box text {
+    font-size: 1.2em !important;
+    fill: black;
+}
+
+.gauge-box .title-text {
+    font-size: 24px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    transform: translateY(-15px);
+}
+
+.gauge-box .main-value {
+    font-size: 40px !important;
+    font-weight: bold;
+}
+
+/* 針對 degree.html 的額外圖表（波形 & YOLO） */
+body[data-page="degree"] .wave-box {
+    width: 450px;
+    height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+body[data-page="degree"] .yolo-box {
+    width: 400px;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background-color: white;
+    padding: 10px;
+}
+
+body[data-page="degree"] .yolo-box img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+body[data-page="degree"] .date-query {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    font-size: 22px; 
+    font-weight: bold;
+}
+
+body[data-page="degree"] .date-query input[type="date"] {
+    font-size: 20px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 200px; 
+}
+
+body[data-page="degree"] .date-query label {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+body[data-page="degree"] .date-query input {
+    font-size: 16px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+body[data-page="degree"] .query-btn, .clear-btn {
+    font-size: 22px; 
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;;
+}
+
+body[data-page="degree"] .query-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+body[data-page="degree"] .query-btn:hover {
+    background-color: #45a049;
+}
+
+body[data-page="degree"] .clear-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+body[data-page="degree"] .clear-btn:hover {
+    background-color: #d32f2f;
+}
+
+body[data-page="degree"] .summary {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+    .content {
+        margin-left: 200px;
+        width: calc(100% - 200px);
+    }
+}
+
+@media (max-width: 768px) {
+    .content {
+        margin-left: 180px;
+        width: calc(100% - 180px);
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* 讓 degree_history.html 的內容區塊置中 */
+body[data-page="degree_history"] .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; 
+    width: 100%;
+    padding-top: 40px; 
+}
+
+/* 查詢區塊 */
+body[data-page="degree_history"] .search-container {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 95%;
+    max-width: 1100px;
+    margin-bottom: 20px;
+}
+
+/* 讓日期選擇區塊不換行 */
+body[data-page="degree_history"] .date-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+/* 日期選擇框樣式 */
+body[data-page="degree_history"] .date-inputs label {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* 讓日期輸入框大小統一 */
+body[data-page="degree_history"] .date-inputs input[type="date"] {
+    font-size: 18px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 220px;
+}
+
+/* 查詢按鈕 */
+body[data-page="degree_history"] .date-inputs button {
+    background-color: #4CAF50;
+    color: white;
+    font-size: 20px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+body[data-page="degree_history"] .date-inputs button:hover {
+    background-color: #45a049;
+}
+
+/* 圖表容器 */
+body[data-page="degree_history"] .chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    width: 85%;
+    max-width: 1100px;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 確保圖表大小 */
+body[data-page="degree_history"] canvas#myChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 響應式設計 */
+@media (max-width: 1024px) {
+    body[data-page="degree_history"] .search-container {
+        width: 80%;
+    }
+    body[data-page="degree_history"] .chart-container {
+        width: 95%;
+    }
+}
+
+@media (max-width: 768px) {
+    body[data-page="degree_history"] .date-inputs {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    body[data-page="degree_history"] .date-inputs input[type="date"] {
+        width: 100%;
+    }
+
+    body[data-page="degree_history"] .search-container {
+        width: 95%;
+    }
+
+    body[data-page="degree_history"] .chart-container {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    body[data-page="degree_history"] .search-container {
+        width: 100%;
+    }
+    body[data-page="degree_history"] .chart-container {
+        width: 100%;
+    }
+}
+
+/* 讓 results_history.html 的內容區塊置中 */
+body[data-page="results_history"] .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; 
+    width: 100%;
+    padding-top: 40px; 
+}
+
+/* 增加白色區塊的寬度和內邊距，確保內容不換行 */
+body[data-page="results_history"] .search-container {
+    background: white;
+    padding: 30px 40px; 
+    border-radius: 12px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 95%;  
+    max-width: 1100px; 
+    margin-bottom: 20px;
+}
+
+/* 讓選擇日期區塊的間距更均勻，防止換行 */
+body[data-page="results_history"] .date-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: nowrap; 
+    width: 100%;
+}
+
+/* 讓按鈕與輸入框不會擠在一起 */
+body[data-page="results_history"] .date-inputs button {
+    white-space: nowrap;
+    font-size: 20px;
+    padding: 12px 20px;
+}
+
+/* 讓日期選擇框寬度統一 */
+body[data-page="results_history"] .date-inputs input[type="date"] {
+    font-size: 18px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 220px;
+}
+
+/* 查詢按鈕 */
+body[data-page="results_history"] .date-inputs button {
+    background-color: #4CAF50;
+    color: white;
+    font-size: 16px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+body[data-page="results_history"] .date-inputs button:hover {
+    background-color: #45a049;
+}
+
+/* 圖表容器 */
+body[data-page="results_history"] .chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    width: 85%;
+    max-width: 1100px;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 確保圖表大小 */
+body[data-page="results_history"] canvas#myChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 響應式設計 */
+@media (max-width: 1024px) {
+    body[data-page="results_history"] .search-container {
+        width: 80%;
+    }
+    body[data-page="results_history"] .chart-container {
+        width: 95%;
+    }
+}
+
+@media (max-width: 768px) {
+    body[data-page="results_history"] .date-inputs {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    body[data-page="results_history"] .date-inputs input[type="date"] {
+        width: 100%;
+    }
+
+    body[data-page="results_history"] .search-container {
+        width: 95%;
+    }
+
+    body[data-page="results_history"] .chart-container {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    body[data-page="results_history"] .search-container {
+        width: 100%;
+    }
+    body[data-page="results_history"] .chart-container {
+        width: 100%;
+    }
+}
+
+/* 讓選擇日期範圍與開始日期在同一行 */
+body[data-page="degree_history"] .date-inputs h3,
+body[data-page="results_history"] .date-inputs h3 {
+    font-size: 22px;
+    font-weight: bold;
+    margin-right: 20px;
+}
+
+/* 讓「開始日期」和「結束日期」的字體變大 */
+body[data-page="degree_history"] .date-inputs label,
+body[data-page="results_history"] .date-inputs label {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* 讓「日期選擇框」變大 */
+body[data-page="degree_history"] .date-inputs input[type="date"],
+body[data-page="results_history"] .date-inputs input[type="date"] {
+    font-size: 18px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 200px;
+}
+
+/* 讓「顯示圖表」按鈕變大 */
+body[data-page="degree_history"] .date-inputs button,
+body[data-page="results_history"] .date-inputs button {
+    background-color: #4CAF50;
+    color: white;
+    font-size: 20px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+body[data-page="degree_history"] .date-inputs button:hover,
+body[data-page="results_history"] .date-inputs button:hover {
+    background-color: #45a049;
+}
