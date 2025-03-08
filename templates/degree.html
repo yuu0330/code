@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>病蟲害偵測</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+</head>
+<body data-page="degree">
+    <!-- 左側導覽列 -->
+    <div class="navbar">
+        <h1>病蟲害偵測及警示整合系統</h1>
+        <nav>
+            <a href="/">登出</a>
+    
+            <div class="dropdown">
+                <button class="dropbtn">害蟲模組 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/degree">害蟲監測</a>
+                    <a href="/degree_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">場域資料 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/results">環境監測</a>
+                    <a href="/results_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">資材管理 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/material">資材紀錄</a>
+                    <a href="/material_history">歷史資料</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- 內容區塊 -->
+    <div class="content">
+        <h2 class="page-title">多模態 AI 蟲害監測</h2>
+
+        <!-- ✅ 日期查詢區塊 -->
+        <div class="date-query">
+            <label for="startDate">日期查詢：</label>
+            <input type="date" id="startDate">
+            <span>~</span>
+            <input type="date" id="endDate">
+            <button class="query-btn" onclick="fetchPestData()">查詢</button>
+            <button class="clear-btn" onclick="clearDate()">清除</button>
+        </div>
+
+        <!-- ✅ 害蟲總數量 & 裝置編號 -->
+        <div class="summary">
+            <p><strong>害蟲總數量：</strong> <span id="totalPests">載入中...</span> 隻</p>
+            <p><strong>裝置編號：</strong> A1</p>
+        </div>
+
+        <!-- ✅ 病蟲害監測視覺化圖表 -->
+        <div class="gauge-container">
+            <div class="gauge-box" id="pestCountGauge"></div>
+            <div class="wave-box" id="wingbeatWaveform"></div>
+            <div class="yolo-box">
+                <img id="yoloStream" src="/detect_pests">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ✅ 取得今日日期（YYYY-MM-DD 格式）
+        function getTodayDate() {
+            let today = new Date();
+            return today.toISOString().split("T")[0];
+        }
+
+        // ✅ 查詢害蟲總數（根據日期）
+        function fetchPestData(useToday = false) {
+            let startDate = document.getElementById("startDate").value;
+            let endDate = document.getElementById("endDate").value;
+
+            if (useToday || (!startDate && !endDate)) {
+                startDate = endDate = getTodayDate(); // ✅ 預設為今日
+            }
+
+            $.get(`/fetch_pest_history?startDate=${startDate}&endDate=${endDate}`, function(data) {
+                let totalPests = data.reduce((sum, record) => sum + record.pest_count, 0);
+                $("#totalPests").text(totalPests); // ✅ 更新害蟲總數量
+
+                let pestCountGaugeData = [{
+                    type: "indicator",
+                    mode: "gauge+number",
+                    value: totalPests,
+                    title: { text: "病蟲數量", font: { size: 20 } },
+                    gauge: {
+                        axis: { range: [0, 500], tickwidth: 1, tickcolor: "darkblue" },
+                        bar: { color: "darkblue" },
+                        steps: [
+                            { range: [0, 100], color: "#32CD32" },
+                            { range: [100, 200], color: "#00BFFF" },
+                            { range: [200, 300], color: "#FFA500" },
+                            { range: [300, 400], color: "#FF4500" },
+                            { range: [400, 500], color: "#8B0000" }
+                        ]
+                    }
+                }];
+
+                Plotly.newPlot('pestCountGauge', pestCountGaugeData);
+            });
+        }
+
+        // ✅ 清除按鈕 - 只清除日期，但害蟲總數量仍顯示今日數據
+        function clearDate() {
+            $("#startDate").val('');
+            $("#endDate").val('');
+            fetchPestData(true); // ✅ 重新載入今日害蟲數量
+        }
+
+        // ✅ 預設載入今日害蟲數量（但日期欄位不填）
+        $(document).ready(function () {
+            fetchPestData(true);
+        });
+
+        // 確保下拉選單可以展開
+        $(document).ready(function () {
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+        function updateWingbeatWaveform() {
+            const frequency = Math.random() * 100 + 20;  // 產生 20Hz - 120Hz 之間的變化
+            const sampleRate = 1000;
+            const duration = 0.02;
+            const time = [];
+            const waveform = [];
+
+            for (let i = 0; i < sampleRate * duration; i++) {
+                let t = i / sampleRate;
+                time.push(t);
+                waveform.push(Math.sin(2 * Math.PI * frequency * t));
+            }
+
+            const trace = {
+                x: time,
+                y: waveform,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'blue' }
+            };
+
+            const layout = {
+                title: `振翅波形 (${Math.round(frequency)}Hz)`, // 顯示動態變化
+                width: 400,
+                height: 350,
+                xaxis: { title: "Time [s]" },
+                yaxis: { title: "Amplitude" },
+                showlegend: false
+            };
+
+            Plotly.newPlot('wingbeatWaveform', [trace], layout);
+        }
+
+        // 每 5 秒更新一次波形圖
+        setInterval(updateWingbeatWaveform, 5000);
+
+        function logout() {
+            $.get("/logout", function() {
+                window.location.href = "/";
+            });
+        }
+
+        fetchPestData();
+        updateWingbeatWaveform();
+        setInterval(fetchPestData, 30000);
+    </script>
+
+</body>
+</html>
