@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>田間監測歷史紀錄</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body data-page="results_history">
+    <div class="navbar">
+        <h1>病蟲害偵測及警示整合系統</h1>
+        <nav>
+            <a href="/">登出</a>
+    
+            <div class="dropdown">
+                <button class="dropbtn">害蟲模組 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/degree">害蟲監測</a>
+                    <a href="/degree_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">場域資料 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/results">環境監測</a>
+                    <a href="/results_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">資材管理 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/material">資材紀錄</a>
+                    <a href="/material_history">歷史資料</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div class="search-container">
+            <h2 class="page-title">環境歷史資料</h2>
+            <div class="date-inputs">
+                <h3>選擇日期範圍</h3>
+                <label for="startDate">開始日期:</label>
+                <input type="date" id="startDate">
+                
+                <label for="endDate">結束日期:</label>
+                <input type="date" id="endDate">
+    
+                <button onclick="fetchData()">顯示圖表</button>
+            </div>
+        </div>
+    
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        function fetchData() {
+            console.log("fetchData() 被呼叫"); // 確認函數有被執行
+
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+
+            if (!startDate || !endDate) {
+                alert("請填寫完整的日期範圍");
+                return;
+            }
+
+            fetch(`/fetch_results_history?startDate=${startDate}&endDate=${endDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("從後端獲取的數據：", data); // 確認有正確取得數據
+                    renderChart(data);
+                })
+                .catch(error => console.error("Error fetching data:", error));
+        }
+
+        function renderChart(data) {
+            console.log("準備繪製圖表，數據內容：", data);
+
+            const ctx = document.getElementById("myChart").getContext("2d");
+
+            if (window.myChart instanceof Chart) {
+                window.myChart.destroy();
+            }
+
+            window.myChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: "環境溫度 (°C)",
+                            data: data.ambientTemperature,
+                            borderColor: "#FF5733",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "環境濕度 (%)",
+                            data: data.ambientHumidity,
+                            borderColor: "#338AFF",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "土壤溫度 (°C)",
+                            data: data.soilTemperature,
+                            borderColor: "#33FF57",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "土壤含水量 (%)",
+                            data: data.soilMoisture,
+                            borderColor: "#FFC300",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "土壤 EC 值",
+                            data: data.ecValue,
+                            borderColor: "#8D33FF",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: "日期時間", font: { size: 16 } } },
+                        y: { title: { display: true, text: "數值", font: { size: 16 } } }
+                    }
+                }
+            });
+        }
+        // 確保下拉選單可以展開
+        $(document).ready(function () {
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

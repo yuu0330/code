@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>田間監測</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body data-page="results">
+
+    <!-- 導覽列 -->
+    <div class="navbar">
+        <h1>病蟲害偵測及警示整合系統</h1>
+        <nav>
+            <a href="/">登出</a>
+    
+            <div class="dropdown">
+                <button class="dropbtn">害蟲模組 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/degree">害蟲監測</a>
+                    <a href="/degree_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">場域資料 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/results">環境監測</a>
+                    <a href="/results_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">資材管理 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/material">資材紀錄</a>
+                    <a href="/material_history">歷史資料</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <div class="content">
+        <h2 class="page-title">場域環境監測</h2>
+
+        <!-- 上排：環境數據 -->
+        <div class="gauge-container">
+            <div class="gauge-box" id="gaugeEnvTemp"></div>
+            <div class="gauge-box" id="gaugeEnvHumidity"></div>
+        </div>
+
+        <!-- 下排：土壤數據 -->
+        <div class="gauge-container">
+            <div class="gauge-box" id="gaugeSoilTemp"></div>
+            <div class="gauge-box" id="gaugeSoilMoisture"></div>
+            <div class="gauge-box" id="gaugeSoilEC"></div>
+        </div>
+    </div>
+
+    <script>
+        function createGauge(value, title, range, colors) {
+            return {
+                type: "indicator",
+                mode: "gauge+number",
+                value: value,
+                title: { 
+                    text: `<span class="title-text">${title}</span>`, 
+                    font: { size: 24 },
+                    y: 1.2
+                },
+                number: { 
+                    font: { size: 40 }, 
+                    yanchor: "bottom",
+                    font: { size: 40, weight: "bold" } // 🛠 讓顯示數字變大
+                },
+                gauge: {
+                    shape: "semi-circle",
+                    axis: { range: range, tickwidth: 1, tickcolor: "black", tickfont: { size: 12 } }, // 🛠 刻度字體縮小
+                    bar: { color: "darkblue", thickness: 0.3 },
+                    steps: colors.map(c => ({ range: [c[0], c[1]], color: c[2] })),
+                    threshold: {
+                        line: { color: "darkblue", width: 5 },
+                        thickness: 0.8,
+                        value: value
+                    }
+                }
+            };
+        }
+        async function fetchWeatherData() {
+            try {
+                let response = await fetch(
+                    "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035?Authorization=CWA-233147B7-C268-43C1-BC20-C819EE149C00&format=JSON&LocationName=內埔鄉&ElementName=平均溫度,平均相對濕度"
+                );
+
+                let data = await response.json();
+                console.log("✅ API 原始回應:", JSON.stringify(data, null, 2)); // 🛠 檢查完整 API 回應
+
+                // 🛠 確保 `records` 存在
+                if (!data.records || !data.records.Locations) {
+                    throw new Error("❌ API 回應沒有 records 或 Locations");
+                }
+
+                // 🛠 解析 `Locations`
+                let locations = data.records.Locations;
+                let locationData = locations[0].Location.find(loc => loc.LocationName === "內埔鄉");
+
+                if (!locationData) {
+                    throw new Error("❌ 找不到內埔鄉的數據");
+                }
+
+                let elements = locationData.WeatherElement;
+                if (!elements || elements.length < 2) {
+                    throw new Error("❌ 找不到 weatherElement");
+                }
+
+                let tempElement = elements.find(e => e.ElementName === "平均溫度");
+                let humidityElement = elements.find(e => e.ElementName === "平均相對濕度");
+
+                if (!tempElement || !humidityElement) {
+                    throw new Error("❌ 缺少平均溫度或平均相對濕度的數據");
+                }
+
+                let temp = tempElement.Time[0].ElementValue[0].Temperature;
+                let humidity = humidityElement.Time[0].ElementValue[0].RelativeHumidity;
+
+                return { temperature: parseFloat(temp), humidity: parseFloat(humidity) };
+
+            } catch (error) {
+                console.error("❌ API 讀取失敗:", error);
+                return { temperature: 25, humidity: 60 }; // 🛠 預設數據，避免 UI 崩潰
+            }
+        }
+
+        function generateSoilData(envTemperature) {
+            return {
+                soilTemperature: (envTemperature - (Math.random() * 1 + 1)).toFixed(1),
+                soilMoisture: (Math.random()).toFixed(2),
+                soilEC: (Math.random() * (4 - 1) + 1).toFixed(2)
+            };
+        }
+
+        // 確保下拉選單可以展開
+        $(document).ready(function () {
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+        
+        async function updateGauges() {
+            let data = await fetchWeatherData();
+            let soilData = generateSoilData(data.temperature);
+
+            Plotly.newPlot('gaugeEnvTemp', [createGauge(data.temperature, "環境溫度 (°C)", [0, 50], [
+                [0, 10, "#4CAF50"], [10, 20, "#00BCD4"], [20, 30, "#FFC107"], [30, 50, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugeEnvHumidity', [createGauge(data.humidity, "環境濕度 (%)", [0, 100], [
+                [0, 25, "#4CAF50"], [25, 50, "#00BCD4"], [50, 75, "#FFC107"], [75, 100, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugeSoilTemp', [createGauge(soilData.soilTemperature, "土壤溫度 (°C)", [0, 50], [
+                [0, 10, "#4CAF50"], [10, 20, "#00BCD4"], [20, 30, "#FFC107"], [30, 50, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugeSoilMoisture', [createGauge(soilData.soilMoisture, "土壤含水量 (%)", [0, 1], [
+                [0, 0.2, "#4CAF50"], [0.2, 0.4, "#00BCD4"], [0.4, 0.7, "#FFC107"], [0.7, 1, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugeSoilEC', [createGauge(soilData.soilEC, "土壤EC值 (mmhos/cm)", [1, 4], [
+                [1, 2, "#4CAF50"], [2, 3, "#FFC107"], [3, 4, "#F44336"]
+            ])]);
+        }
+
+        updateGauges();
+        setInterval(updateGauges, 30000);
+    </script>
+
+</body>
+</html>
