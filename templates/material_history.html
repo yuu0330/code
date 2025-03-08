@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歷史農藥使用紀錄</title>
+    <link rel="stylesheet" href="/static/material.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+    <div class="navbar">
+        <h1>病蟲害偵測及警示整合系統</h1>
+        <nav>
+            <a href="/">登出</a>
+    
+            <div class="dropdown">
+                <button class="dropbtn">害蟲模組 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/degree">害蟲監測</a>
+                    <a href="/degree_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">場域資料 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/results">環境監測</a>
+                    <a href="/results_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">資材管理 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/material">資材紀錄</a>
+                    <a href="/material_history">歷史資料</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class="content">
+        <h2>資材使用紀錄</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>農藥名稱</th>
+                    <th>使用時間</th>
+                    <th>使用地點</th>
+                    <th>用途</th>
+                </tr>
+            </thead>
+            <tbody id="historyTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // 確保下拉選單可以展開
+        $(document).ready(function () {
+            $(".dropbtn").click(function () {
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+
+            // 點擊其他地方時關閉選單
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+
+            // 加載歷史記錄
+            function loadHistory() {
+                $.get("/get_materials", function (data) {
+                    let historyTable = $("#historyTable");
+                    historyTable.empty();
+                    data.forEach(record => {
+                        historyTable.append(`
+                            <tr>
+                                <td>${record.name}</td>
+                                <td>${record.time}</td>
+                                <td>${record.place}</td>
+                                <td>${record.use}</td>
+                            </tr>
+                        `);
+                    });
+                });
+            }
+            loadHistory();
+        });
+    </script>
+</body>
+</html>
