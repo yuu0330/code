@@ -1,0 +1,26 @@
+<annotation>
+  <folder>C:/Users/Win11/Desktop/yolo_2/images1</folder>
+  <filename>111_L_5.jpg</filename>
+  <path>C:/Users/Win11/Desktop/yolo_2/images1\111_L_5.jpg</path>
+  <source>
+    <database>Unknown</database>
+  </source>
+  <size>
+    <width>121</width>
+    <height>121</height>
+    <depth>3</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>117</xmin>
+      <ymin>106</ymin>
+      <xmax>2</xmax>
+      <ymax>9</ymax>
+    </bndbox>
+  </object>
+</annotation>

@@ -1,0 +1,38 @@
+<annotation>
+  <folder>C:/Users/Win11/Desktop/yolo_2/images1</folder>
+  <filename>128_L_3.jpg</filename>
+  <path>C:/Users/Win11/Desktop/yolo_2/images1\128_L_3.jpg</path>
+  <source>
+    <database>Unknown</database>
+  </source>
+  <size>
+    <width>2017</width>
+    <height>2017</height>
+    <depth>3</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>455</xmin>
+      <ymin>81</ymin>
+      <xmax>1435</xmax>
+      <ymax>1468</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>1395</xmin>
+      <ymin>441</ymin>
+      <xmax>1826</xmax>
+      <ymax>1714</ymax>
+    </bndbox>
+  </object>
+</annotation>
