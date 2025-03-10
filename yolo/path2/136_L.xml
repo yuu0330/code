@@ -1,0 +1,146 @@
+<annotation>
+	<folder>reClip</folder>
+	<filename>136_L.jpg</filename>
+	<path>C:\Users\Win11\Desktop\yolo_2\reClip\136_L.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>1280</width>
+		<height>1280</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>421</xmin>
+			<ymin>124</ymin>
+			<xmax>623</xmax>
+			<ymax>319</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>700</xmin>
+			<ymin>201</ymin>
+			<xmax>903</xmax>
+			<ymax>304</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>967</xmin>
+			<ymin>251</ymin>
+			<xmax>1217</xmax>
+			<ymax>392</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>145</xmin>
+			<ymin>384</ymin>
+			<xmax>328</xmax>
+			<ymax>611</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>439</xmin>
+			<ymin>400</ymin>
+			<xmax>671</xmax>
+			<ymax>544</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>729</xmin>
+			<ymin>397</ymin>
+			<xmax>903</xmax>
+			<ymax>595</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>972</xmin>
+			<ymin>481</ymin>
+			<xmax>1123</xmax>
+			<ymax>736</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>257</xmin>
+			<ymin>661</ymin>
+			<xmax>503</xmax>
+			<ymax>821</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>636</xmin>
+			<ymin>728</ymin>
+			<xmax>824</xmax>
+			<ymax>1019</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>785</xmin>
+			<ymin>787</ymin>
+			<xmax>896</xmax>
+			<ymax>1035</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1004</xmin>
+			<ymin>952</ymin>
+			<xmax>1197</xmax>
+			<ymax>1165</ymax>
+		</bndbox>
+	</object>
+</annotation>
