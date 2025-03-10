@@ -514,7 +514,7 @@ if __name__ == '__main__':
     parser.add_argument('--source_img_path', type=str, default='C:/Users/Win11/Desktop/yolo_2/reClip')
     parser.add_argument('--source_xml_path', type=str, default='C:/Users/Win11/Desktop/yolo_2/path2')
     parser.add_argument('--save_img_path', type=str, default='C:/Users/Win11/Desktop/yolo_2/images1')
-    parser.add_argument('--save_xml_path', type=str, default='C:/Users/Win11/Desktop/yolo_2/images2')
+    parser.add_argument('--save_xml_path', type=str, default='C:/Users/Win11/Desktop/yolo_2/xml')
     args = parser.parse_args()
     source_img_path = args.source_img_path  # 图片原始位置
     source_xml_path = args.source_xml_path  # xml的原始位置
