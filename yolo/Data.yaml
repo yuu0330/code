@@ -1,0 +1,8 @@
+path: C:/Users/Win11/Desktop/yolo_2 # 數據集的根目錄
+train: images/train # 訓練集圖片資料夾
+val: images/val     # 驗證集圖片資料夾
+test: images/test   # 測試集圖片資料夾
+
+# 分類
+names:
+  0: Spodoptera litura
