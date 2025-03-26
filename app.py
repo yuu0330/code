@@ -51,7 +51,7 @@ def material_history():
 def results_history():
     return render_template("results_history.html")
 
-# ✅ 📌 這裡只保留一個 degree_history
+# 這裡只保留一個 degree_history
 @app.route("/degree_history")
 def degree_history():
     return render_template("degree_history.html")
@@ -72,7 +72,7 @@ def submit_material():
 
     return jsonify(result)
 
-# ✅ 只保留一個 `get_materials`
+# 只保留一個 `get_materials`
 @app.route("/get_materials", methods=["GET"])
 def get_materials():
     """獲取農藥使用歷史紀錄 (確保 `time` 顯示正確)"""
@@ -242,11 +242,45 @@ def fetch_pest_history():
     while current_date <= end_date:
         records.append({
             "date": current_date.strftime("%Y-%m-%d"),
-            "pest_count": random.randint(50, 200)  # ✅ 模擬害蟲數據
+            "pest_count": random.randint(50, 200)
         })
         current_date += timedelta(days=1)
 
     return jsonify(records)
+
+# ====================== 每日變化 ======================
+@app.route("/daily_trend")
+def daily_trend():
+    return render_template("daily_trend.html")
+@app.route("/fetch_daily_trend")
+def fetch_daily_trend():
+    """回傳今日或昨日每兩小時的溫度與蟲數資料，最多15筆"""
+    now = datetime.now()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    interval = timedelta(hours=2)
+
+    temperature_data = []
+    pest_data = []
+    current = today_start
+
+    while current <= now and len(temperature_data) < 15:
+        time_str = current.strftime("%Y-%m-%d %H:%M")
+        temperature_data.append((time_str, round(random.uniform(22, 34), 1)))
+        pest_data.append((time_str, random.randint(50, 150)))
+        current += interval
+
+    # 如果資料太少就補昨天的
+    if len(temperature_data) < 10:
+        yesterday = today_start - timedelta(days=1)
+        for i in range(15 - len(temperature_data)):
+            time_str = (yesterday + i * interval).strftime("%Y-%m-%d %H:%M")
+            temperature_data.insert(0, (time_str, round(random.uniform(22, 34), 1)))
+            pest_data.insert(0, (time_str, random.randint(50, 150)))
+
+    return jsonify({
+        "temperature": temperature_data,
+        "pests": pest_data
+    })
 
 # ====================== 啟動 Flask 伺服器 ======================
 

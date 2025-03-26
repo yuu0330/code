@@ -74,11 +74,11 @@
                 number: { 
                     font: { size: 40 }, 
                     yanchor: "bottom",
-                    font: { size: 40, weight: "bold" } // 🛠 讓顯示數字變大
+                    font: { size: 40, weight: "bold" } 
                 },
                 gauge: {
                     shape: "semi-circle",
-                    axis: { range: range, tickwidth: 1, tickcolor: "black", tickfont: { size: 12 } }, // 🛠 刻度字體縮小
+                    axis: { range: range, tickwidth: 1, tickcolor: "black", tickfont: { size: 12 } }, 
                     bar: { color: "darkblue", thickness: 0.3 },
                     steps: colors.map(c => ({ range: [c[0], c[1]], color: c[2] })),
                     threshold: {
@@ -96,11 +96,11 @@
                 );
 
                 let data = await response.json();
-                console.log("✅ API 原始回應:", JSON.stringify(data, null, 2)); // 🛠 檢查完整 API 回應
+                console.log("API 原始回應:", JSON.stringify(data, null, 2)); // 檢查完整 API 回應
 
                 // 🛠 確保 `records` 存在
                 if (!data.records || !data.records.Locations) {
-                    throw new Error("❌ API 回應沒有 records 或 Locations");
+                    throw new Error("API 回應沒有 records 或 Locations");
                 }
 
                 // 🛠 解析 `Locations`
@@ -108,19 +108,19 @@
                 let locationData = locations[0].Location.find(loc => loc.LocationName === "內埔鄉");
 
                 if (!locationData) {
-                    throw new Error("❌ 找不到內埔鄉的數據");
+                    throw new Error("找不到內埔鄉的數據");
                 }
 
                 let elements = locationData.WeatherElement;
                 if (!elements || elements.length < 2) {
-                    throw new Error("❌ 找不到 weatherElement");
+                    throw new Error("找不到 weatherElement");
                 }
 
                 let tempElement = elements.find(e => e.ElementName === "平均溫度");
                 let humidityElement = elements.find(e => e.ElementName === "平均相對濕度");
 
                 if (!tempElement || !humidityElement) {
-                    throw new Error("❌ 缺少平均溫度或平均相對濕度的數據");
+                    throw new Error("缺少平均溫度或平均相對濕度的數據");
                 }
 
                 let temp = tempElement.Time[0].ElementValue[0].Temperature;
@@ -129,8 +129,8 @@
                 return { temperature: parseFloat(temp), humidity: parseFloat(humidity) };
 
             } catch (error) {
-                console.error("❌ API 讀取失敗:", error);
-                return { temperature: 25, humidity: 60 }; // 🛠 預設數據，避免 UI 崩潰
+                console.error("API 讀取失敗:", error);
+                return { temperature: 25, humidity: 60 };
             }
         }
 

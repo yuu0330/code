@@ -115,14 +115,14 @@
             });
         }
 
-        // ✅ 清除按鈕 - 只清除日期，但害蟲總數量仍顯示今日數據
+        // 清除按鈕 - 只清除日期，但害蟲總數量仍顯示今日數據
         function clearDate() {
             $("#startDate").val('');
             $("#endDate").val('');
-            fetchPestData(true); // ✅ 重新載入今日害蟲數量
+            fetchPestData(true); // 重新載入今日害蟲數量
         }
 
-        // ✅ 預設載入今日害蟲數量（但日期欄位不填）
+        // 預設載入今日害蟲數量（但日期欄位不填）
         $(document).ready(function () {
             fetchPestData(true);
         });
