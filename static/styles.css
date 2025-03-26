@@ -11,6 +11,12 @@ body {
     height: 100vh;
 }
 
+.logo {
+    width: 120px;       
+    margin: 0 auto 20px auto;
+    display: block;
+}
+
 /* ---- 修正下拉選單樣式 ---- */
 .dropdown {
     width: 100%;
