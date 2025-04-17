@@ -54,9 +54,8 @@
 
         <!-- 下排：土壤數據 -->
         <div class="gauge-container">
-            <div class="gauge-box" id="gaugeSoilTemp"></div>
-            <div class="gauge-box" id="gaugeSoilMoisture"></div>
             <div class="gauge-box" id="gaugeSoilEC"></div>
+            <div class="gauge-box" id="gaugeIllumination"></div>
         </div>
     </div>
 
@@ -138,7 +137,8 @@
             return {
                 soilTemperature: (envTemperature - (Math.random() * 1 + 1)).toFixed(1),
                 soilMoisture: (Math.random()).toFixed(2),
-                soilEC: (Math.random() * (4 - 1) + 1).toFixed(2)
+                soilEC: (Math.random() * (3.5 - 0.5) + 0.5).toFixed(2),
+                illumination: Math.floor(Math.random() * (30000 - 5000) + 5000) // lux
             };
         }
 
@@ -167,22 +167,47 @@
             Plotly.newPlot('gaugeEnvHumidity', [createGauge(data.humidity, "環境濕度 (%)", [0, 100], [
                 [0, 25, "#4CAF50"], [25, 50, "#00BCD4"], [50, 75, "#FFC107"], [75, 100, "#F44336"]
             ])]);
-
-            Plotly.newPlot('gaugeSoilTemp', [createGauge(soilData.soilTemperature, "土壤溫度 (°C)", [0, 50], [
-                [0, 10, "#4CAF50"], [10, 20, "#00BCD4"], [20, 30, "#FFC107"], [30, 50, "#F44336"]
-            ])]);
-
-            Plotly.newPlot('gaugeSoilMoisture', [createGauge(soilData.soilMoisture, "土壤含水量 (%)", [0, 1], [
-                [0, 0.2, "#4CAF50"], [0.2, 0.4, "#00BCD4"], [0.4, 0.7, "#FFC107"], [0.7, 1, "#F44336"]
-            ])]);
-
             Plotly.newPlot('gaugeSoilEC', [createGauge(soilData.soilEC, "土壤EC值 (mmhos/cm)", [1, 4], [
                 [1, 2, "#4CAF50"], [2, 3, "#FFC107"], [3, 4, "#F44336"]
+            ])]);
+            Plotly.newPlot('gaugeIllumination', [createGauge(soilData.illumination, "光照度 (lux)", [0, 30000], [
+                [0, 5000, "#4CAF50"], [5000, 15000, "#FFC107"], [15000, 30000, "#F44336"]
             ])]);
         }
 
         updateGauges();
         setInterval(updateGauges, 30000);
+
+        async function sendEnvironmentDataToSheet() {
+            const { temperature, humidity } = await fetchWeatherData();
+
+            // 土壤 EC 值（0.5 ~ 3.5 mmhos/cm）
+            const ec = parseFloat((Math.random() * (3.5 - 0.5) + 0.5).toFixed(2));
+
+            // 光照度範圍（5000 ~ 30000 lux）
+            const illumination = Math.floor(Math.random() * (30000 - 5000) + 5000);
+
+            fetch("/submit_environment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    temperature,
+                    humidity,
+                    ec,
+                    illumination
+                })
+            })
+            .then(res => res.json())
+            .then(data => console.log("上傳成功:", data))
+            .catch(err => console.error("上傳失敗:", err));
+        }
+
+        // 頁面載入時立即上傳一次
+        sendEnvironmentDataToSheet();
+
+
     </script>
 
 </body>

@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-# Google Apps Script API URL (請替換為你的 API)
-GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbyKkbYWNgEnCjUh7ebfarBBrCotQHZWd_326DhO54BL2JNtq6pqn-lruQmbaV2RXadsvQ/exec"
+# Google Apps Script API URL
+GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycby_tt0I_ot4Yp_GW12j6TfIOZUS9Tskq-Ak5Kq9FlDOVz7UnQwIP13J2Q_2n1pwq46R6Q/exec"
 
 # 氣象 API 設定
 # API_URL = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035"
@@ -281,6 +281,20 @@ def fetch_daily_trend():
         "temperature": temperature_data,
         "pests": pest_data
     })
+
+# ====================== 上傳資料 ======================
+@app.route("/submit_environment", methods=["POST"])
+def submit_environment():
+    data = request.json
+    data["action"] = "add_environment"
+
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(GOOGLE_SHEET_API, json=data, headers=headers)
+
+    try:
+        return jsonify(response.json())
+    except ValueError:
+        return jsonify({"success": False, "message": "格式錯誤"}), 500
 
 # ====================== 啟動 Flask 伺服器 ======================
 
