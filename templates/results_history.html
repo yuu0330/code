@@ -65,8 +65,6 @@
 
     <script>
         function fetchData() {
-            console.log("fetchData() 被呼叫"); // 確認函數有被執行
-
             const startDate = document.getElementById("startDate").value;
             const endDate = document.getElementById("endDate").value;
 
@@ -75,14 +73,21 @@
                 return;
             }
 
-            fetch(`/fetch_results_history?startDate=${startDate}&endDate=${endDate}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("從後端獲取的數據：", data); // 確認有正確取得數據
-                    renderChart(data);
-                })
-                .catch(error => console.error("Error fetching data:", error));
+            Promise.all([
+                fetch(`/fetch_results_history?startDate=${startDate}&endDate=${endDate}`).then(res => res.json()),
+                fetchWeatherData()
+            ]).then(([envData, weatherData]) => {
+                envData.ambientTemperature = Array(envData.dates.length).fill(weatherData.temperature);
+                envData.ambientHumidity = Array(envData.dates.length).fill(weatherData.humidity);
+
+                renderChart(envData);
+            }).catch(error => {
+                console.error("資料讀取失敗:", error);
+            });
         }
+
+        console.log("溫度", data.ambientTemperature);
+        console.log("濕度", data.ambientHumidity);
 
         function renderChart(data) {
             console.log("準備繪製圖表，數據內容：", data);
@@ -102,6 +107,7 @@
                             label: "環境溫度 (°C)",
                             data: data.ambientTemperature,
                             borderColor: "#FF5733",
+                            yAxisID: "y", // 左側 Y 軸
                             borderWidth: 2,
                             pointRadius: 3
                         },
@@ -109,27 +115,23 @@
                             label: "環境濕度 (%)",
                             data: data.ambientHumidity,
                             borderColor: "#338AFF",
+                            yAxisID: "y", // 左側 Y 軸
                             borderWidth: 2,
                             pointRadius: 3
                         },
                         {
-                            label: "土壤溫度 (°C)",
-                            data: data.soilTemperature,
-                            borderColor: "#33FF57",
-                            borderWidth: 2,
-                            pointRadius: 3
-                        },
-                        {
-                            label: "土壤含水量 (%)",
-                            data: data.soilMoisture,
-                            borderColor: "#FFC300",
-                            borderWidth: 2,
-                            pointRadius: 3
-                        },
-                        {
-                            label: "土壤 EC 值",
+                            label: "土壤 EC 值 (dS/m)",
                             data: data.ecValue,
                             borderColor: "#8D33FF",
+                            yAxisID: "y", // 左側 Y 軸
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "光照度 (lux)",
+                            data: data.illumination,
+                            borderColor: "#FFA500",
+                            yAxisID: "y2",  // 右側 Y 軸
                             borderWidth: 2,
                             pointRadius: 3
                         }
@@ -139,12 +141,50 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { title: { display: true, text: "日期時間", font: { size: 16 } } },
-                        y: { title: { display: true, text: "數值", font: { size: 16 } } }
+                        x: {
+                            title: {
+                                display: true,
+                                text: "日期時間",
+                                font: { size: 16 }
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 30
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: "數值",
+                                font: { size: 14 }
+                            }
+                        },
+                        y2: {
+                            type: 'linear',
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: "光照度 (lux)",
+                                font: { size: 14 }
+                            },
+                            min: 0,   // ✅ 強制從 0 開始
+                            max: 100,  // ✅ 可以根據溫濕度值設為 100，避免太小看不到
+                            grid: {
+                                drawOnChartArea: false  // 不畫右軸的格線，避免雜亂
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: "top"
+                        }
                     }
                 }
             });
         }
+
         // 確保下拉選單可以展開
         $(document).ready(function () {
             $(".dropbtn").click(function () {
@@ -158,6 +198,32 @@
                 }
             });
         });
+
+        async function fetchWeatherData() {
+            try {
+                let response = await fetch(
+                    "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035?Authorization=CWA-233147B7-C268-43C1-BC20-C819EE149C00&format=JSON&LocationName=內埔鄉&ElementName=平均溫度,平均相對濕度"
+                );
+
+                let data = await response.json();
+
+                let locations = data.records.Locations;
+                let locationData = locations[0].Location.find(loc => loc.LocationName === "內埔鄉");
+                let elements = locationData.WeatherElement;
+
+                let tempElement = elements.find(e => e.ElementName === "平均溫度");
+                let humidityElement = elements.find(e => e.ElementName === "平均相對濕度");
+
+                let temp = tempElement.Time[0].ElementValue[0].Value;
+                let humidity = humidityElement.Time[0].ElementValue[0].Value;
+
+                return { temperature: parseFloat(temp), humidity: parseFloat(humidity) };
+            } catch (error) {
+                console.error("氣象 API 失敗：", error);
+                return { temperature: 25, humidity: 60 };
+            }
+        }
+
     </script>
 </body>
 </html>

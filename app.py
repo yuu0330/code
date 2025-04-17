@@ -180,6 +180,41 @@ def fetch_degree_history():
     return jsonify({"dates": dates, "amount": amount, "wingbeatFrequency": wingbeat_frequency})
 
 # ====================== 場域歷史資料 API ======================
+def fetch_cwa_weather():
+    url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035"
+    params = {
+        "Authorization": "CWA-233147B7-C268-43C1-BC20-C819EE149C00",
+        "format": "JSON",
+        "LocationName": "內埔鄉",
+        "ElementName": "平均溫度,平均相對濕度"
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        # 確保有 Locations 資料
+        location_data = data["records"]["Locations"][0]["Location"][0]
+        elements = location_data["WeatherElement"]
+
+        # 用 ElementName 尋找正確項目
+        temp_elem = next((e for e in elements if e["ElementName"] == "平均溫度"), None)
+        hum_elem = next((e for e in elements if e["ElementName"] == "平均相對濕度"), None)
+
+        if not temp_elem or not hum_elem:
+            raise ValueError("無法從 API 找到平均溫度或平均相對濕度")
+
+        # 取第一筆時間資料的數值
+        temp = float(temp_elem["Time"][0]["ElementValue"][0]["Value"])
+        humidity = float(hum_elem["Time"][0]["ElementValue"][0]["Value"])
+
+        print(f"從 API 取得溫度：{temp}°C、濕度：{humidity}%")
+        return temp, humidity
+
+    except Exception as e:
+        print("氣象 API 失敗：", e)
+        return 25.0, 60.0  # fallback 預設值
+ 
 @app.route('/fetch_results_history')
 def fetch_results_history():
     start_date_str = request.args.get("startDate")
@@ -195,30 +230,31 @@ def fetch_results_history():
         return jsonify({"error": "日期格式錯誤"}), 400
 
     dates = []
-    temperature = []
-    humidity = []
-    soil_temp = []
-    soil_moisture = []
+    ambient_temp = []
+    ambient_humidity = []
     ec_value = []
+    illumination = []
 
-    # 生成隨機數據
+    # 從 API 取得平均溫度與濕度
+    avg_temp, avg_humidity = fetch_cwa_weather()
+
     current_date = start_date
     while current_date <= end_date:
         dates.append(current_date.strftime("%Y-%m-%d %H:%M"))
-        temperature.append(random.uniform(20, 35))  # 環境溫度
-        humidity.append(random.uniform(40, 80))  # 環境濕度
-        soil_temp.append(random.uniform(15, 30))  # 土壤溫度
-        soil_moisture.append(random.uniform(10, 50))  # 土壤含水量
-        ec_value.append(random.uniform(0.5, 2.0))  # EC 值
+
+        ambient_temp.append(avg_temp)       # 用氣象API的值
+        ambient_humidity.append(avg_humidity)
+        ec_value.append(round(random.uniform(0.5, 3.5), 2))
+        illumination.append(random.randint(5000, 30000))
+
         current_date += timedelta(hours=6)
 
     return jsonify({
         "dates": dates,
-        "ambientTemperature": temperature,
-        "ambientHumidity": humidity,
-        "soilTemperature": soil_temp,
-        "soilMoisture": soil_moisture,
-        "ecValue": ec_value
+        "ambientTemperature": ambient_temp,
+        "ambientHumidity": ambient_humidity,
+        "ecValue": ec_value,
+        "illumination": illumination
     })
 
 # ====================== 蟲害總數 API ======================
