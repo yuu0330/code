@@ -58,9 +58,9 @@
             </div>
         </div>
     
-        <div class="chart-container">
-            <canvas id="myChart"></canvas>
-        </div>
+        <div class="chart-container" style="height: 600px;">
+            <canvas id="chartMain"></canvas>
+        </div>        
     </div>
 
     <script>
@@ -73,32 +73,28 @@
                 return;
             }
 
-            Promise.all([
-                fetch(`/fetch_results_history?startDate=${startDate}&endDate=${endDate}`).then(res => res.json()),
-                fetchWeatherData()
-            ]).then(([envData, weatherData]) => {
-                envData.ambientTemperature = Array(envData.dates.length).fill(weatherData.temperature);
-                envData.ambientHumidity = Array(envData.dates.length).fill(weatherData.humidity);
+            fetch(`/fetch_results_history?startDate=${startDate}&endDate=${endDate}`)
+                .then(res => res.json())
+                .then(envData => {
+                    // 隨機補上溫濕度資料
+                    envData.ambientTemperature = envData.dates.map(() => parseFloat((Math.random() * 10 + 20).toFixed(1))); // 20~30°C
+                    envData.ambientHumidity = envData.dates.map(() => parseFloat((Math.random() * 40 + 40).toFixed(1)));    // 40~80%
 
-                renderChart(envData);
-            }).catch(error => {
-                console.error("資料讀取失敗:", error);
-            });
+                    renderChart(envData);
+                })
+                .catch(err => {
+                    console.error("資料讀取失敗：", err);
+                });
         }
 
-        console.log("溫度", data.ambientTemperature);
-        console.log("濕度", data.ambientHumidity);
-
         function renderChart(data) {
-            console.log("準備繪製圖表，數據內容：", data);
+            const ctx = document.getElementById("chartMain").getContext("2d");
 
-            const ctx = document.getElementById("myChart").getContext("2d");
-
-            if (window.myChart instanceof Chart) {
-                window.myChart.destroy();
+            if (window.chartMain instanceof Chart) {
+                window.chartMain.destroy();
             }
 
-            window.myChart = new Chart(ctx, {
+            window.chartMain = new Chart(ctx, {
                 type: "line",
                 data: {
                     labels: data.dates,
@@ -107,7 +103,7 @@
                             label: "環境溫度 (°C)",
                             data: data.ambientTemperature,
                             borderColor: "#FF5733",
-                            yAxisID: "y", // 左側 Y 軸
+                            yAxisID: "y",
                             borderWidth: 2,
                             pointRadius: 3
                         },
@@ -115,7 +111,7 @@
                             label: "環境濕度 (%)",
                             data: data.ambientHumidity,
                             borderColor: "#338AFF",
-                            yAxisID: "y", // 左側 Y 軸
+                            yAxisID: "y1",
                             borderWidth: 2,
                             pointRadius: 3
                         },
@@ -123,7 +119,7 @@
                             label: "土壤 EC 值 (dS/m)",
                             data: data.ecValue,
                             borderColor: "#8D33FF",
-                            yAxisID: "y", // 左側 Y 軸
+                            yAxisID: "y",
                             borderWidth: 2,
                             pointRadius: 3
                         },
@@ -131,7 +127,7 @@
                             label: "光照度 (lux)",
                             data: data.illumination,
                             borderColor: "#FFA500",
-                            yAxisID: "y2",  // 右側 Y 軸
+                            yAxisID: "y2",
                             borderWidth: 2,
                             pointRadius: 3
                         }
@@ -142,44 +138,47 @@
                     maintainAspectRatio: false,
                     scales: {
                         x: {
-                            title: {
-                                display: true,
-                                text: "日期時間",
-                                font: { size: 16 }
-                            },
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 30
-                            }
+                            title: { display: true, text: "日期時間", font: { size: 16 } },
+                            ticks: { maxRotation: 45, minRotation: 30 }
                         },
                         y: {
                             type: 'linear',
                             position: 'left',
                             title: {
                                 display: true,
-                                text: "數值",
+                                text: "溫度 / EC",
                                 font: { size: 14 }
-                            }
+                            },
+                            min: 0
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: "濕度 (%)",
+                                font: { size: 14 }
+                            },
+                            grid: { drawOnChartArea: false },
+                            min: 0,
+                            max: 100
                         },
                         y2: {
                             type: 'linear',
                             position: 'right',
+                            offset: true,
                             title: {
                                 display: true,
                                 text: "光照度 (lux)",
                                 font: { size: 14 }
                             },
-                            min: 0,   // ✅ 強制從 0 開始
-                            max: 100,  // ✅ 可以根據溫濕度值設為 100，避免太小看不到
-                            grid: {
-                                drawOnChartArea: false  // 不畫右軸的格線，避免雜亂
-                            }
+                            grid: { drawOnChartArea: false },
+                            min: 0,
+                            max: 30000
                         }
                     },
                     plugins: {
-                        legend: {
-                            position: "top"
-                        }
+                        legend: { position: "top" }
                     }
                 }
             });
@@ -199,28 +198,49 @@
             });
         });
 
-        async function fetchWeatherData() {
+        async function fetchWeatherDataRange(dates) {
+            const url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035";
+            const auth = "CWA-233147B7-C268-43C1-BC20-C819EE149C00";
+            const location = "內埔鄉";
+
             try {
-                let response = await fetch(
-                    "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035?Authorization=CWA-233147B7-C268-43C1-BC20-C819EE149C00&format=JSON&LocationName=內埔鄉&ElementName=平均溫度,平均相對濕度"
-                );
+                const res = await fetch(`${url}?Authorization=${auth}&format=JSON&locationName=${location}&elementName=平均溫度,平均相對濕度`);
+                const data = await res.json();
 
-                let data = await response.json();
+                const elements = data.records?.Locations?.[0]?.Location?.[0]?.WeatherElement;
+                if (!elements) throw new Error("找不到 WeatherElement");
 
-                let locations = data.records.Locations;
-                let locationData = locations[0].Location.find(loc => loc.LocationName === "內埔鄉");
-                let elements = locationData.WeatherElement;
+                const tempList = elements.find(e => e.ElementName === "平均溫度")?.Time || [];
+                const humList = elements.find(e => e.ElementName === "平均相對濕度")?.Time || [];
 
-                let tempElement = elements.find(e => e.ElementName === "平均溫度");
-                let humidityElement = elements.find(e => e.ElementName === "平均相對濕度");
+                const tempResult = [];
+                const humResult = [];
 
-                let temp = tempElement.Time[0].ElementValue[0].Value;
-                let humidity = humidityElement.Time[0].ElementValue[0].Value;
+                dates.forEach(datetime => {
+                    const dateOnly = datetime.split(" ")[0]; // "2025-04-21"
 
-                return { temperature: parseFloat(temp), humidity: parseFloat(humidity) };
-            } catch (error) {
-                console.error("氣象 API 失敗：", error);
-                return { temperature: 25, humidity: 60 };
+                    // 找出最接近這天的預報資料（只比對日期，不比時間）
+                    const temp = tempList.find(t => t.StartTime.startsWith(dateOnly));
+                    const hum = humList.find(h => h.StartTime.startsWith(dateOnly));
+
+                    const tempVal = parseFloat(temp?.ElementValue?.[0]?.Value);
+                    const humVal = parseFloat(hum?.ElementValue?.[0]?.Value);
+
+                    tempResult.push(!isNaN(tempVal) ? tempVal : 25);
+                    humResult.push(!isNaN(humVal) ? humVal : 60);
+                });
+
+                return {
+                    ambientTemperature: tempResult,
+                    ambientHumidity: humResult
+                };
+            } catch (err) {
+                console.error("氣象 API 多日查詢失敗：", err);
+                const fallback = Array(dates.length).fill(0);
+                return {
+                    ambientTemperature: fallback.map(() => 25),
+                    ambientHumidity: fallback.map(() => 60)
+                };
             }
         }
 
