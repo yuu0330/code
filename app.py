@@ -5,6 +5,7 @@ import requests
 import random
 import os
 from datetime import datetime, timedelta
+from flask import Response
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -331,6 +332,32 @@ def submit_environment():
         return jsonify(response.json())
     except ValueError:
         return jsonify({"success": False, "message": "格式錯誤"}), 500
+
+# ====================== 樹梅派 ======================
+camera = cv2.VideoCapture(0)  # 0 表示 USB 攝影機或樹梅派 CSI 攝影鏡頭
+
+def gen_frames():
+    while True:
+        success, frame = camera.read()
+        if not success:
+            break
+        else:
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+@app.route("/video")
+def video():
+    return render_template("video.html")
+
+@app.route("/video_feed")
+def video_feed():
+    return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route("/stream_redirect")
+def stream_redirect():
+    return redirect("http://192.168.178.153:5000/api/stream")
 
 # ====================== 啟動 Flask 伺服器 ======================
 
