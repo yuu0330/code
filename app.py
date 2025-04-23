@@ -300,7 +300,7 @@ def fetch_daily_trend():
     pest_data = []
     current = today_start
 
-    while current <= now and len(temperature_data) < 15:
+    while current + interval <= now and len(temperature_data) < 15:
         time_str = current.strftime("%Y-%m-%d %H:%M")
         temperature_data.append((time_str, round(random.uniform(22, 34), 1)))
         pest_data.append((time_str, random.randint(50, 150)))
