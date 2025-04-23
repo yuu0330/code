@@ -65,27 +65,27 @@
 
     <script>
         function fetchData() {
-    const startDate = document.getElementById("startDate").value;
-    const endDate = document.getElementById("endDate").value;
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
 
-    if (!startDate || !endDate) {
-        alert("請填寫完整的日期範圍");
-        return;
-    }
+            if (!startDate || !endDate) {
+                alert("請填寫完整的日期範圍");
+                return;
+            }
 
-    fetch(`/fetch_results_history?startDate=${startDate}&endDate=${endDate}`)
-        .then(res => res.json())
-        .then(envData => {
-            // 隨機補上溫濕度資料
-            envData.ambientTemperature = envData.dates.map(() => parseFloat((Math.random() * 10 + 20).toFixed(1))); // 20~30°C
-            envData.ambientHumidity = envData.dates.map(() => parseFloat((Math.random() * 40 + 40).toFixed(1)));    // 40~80%
+            fetch(`/fetch_results_history?startDate=${startDate}&endDate=${endDate}`)
+                .then(res => res.json())
+                .then(envData => {
+                    // 隨機補上溫濕度資料
+                    envData.ambientTemperature = envData.dates.map(() => parseFloat((Math.random() * 10 + 20).toFixed(1))); // 20~30°C
+                    envData.ambientHumidity = envData.dates.map(() => parseFloat((Math.random() * 40 + 40).toFixed(1)));    // 40~80%
 
-            renderChart(envData);
-        })
-        .catch(err => {
-            console.error("資料讀取失敗：", err);
-        });
-}
+                    renderChart(envData);
+                })
+                .catch(err => {
+                    console.error("資料讀取失敗：", err);
+                });
+        }
 
         function renderChart(data) {
             const ctx = document.getElementById("chartMain").getContext("2d");
@@ -199,52 +199,50 @@
         });
 
         async function fetchWeatherDataRange(dates) {
-    const url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035";
-    const auth = "CWA-233147B7-C268-43C1-BC20-C819EE149C00";
-    const location = "內埔鄉";
+            const url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035";
+            const auth = "CWA-233147B7-C268-43C1-BC20-C819EE149C00";
+            const location = "內埔鄉";
 
-    try {
-        const res = await fetch(`${url}?Authorization=${auth}&format=JSON&locationName=${location}&elementName=平均溫度,平均相對濕度`);
-        const data = await res.json();
+            try {
+                const res = await fetch(`${url}?Authorization=${auth}&format=JSON&locationName=${location}&elementName=平均溫度,平均相對濕度`);
+                const data = await res.json();
 
-        console.log("API 回傳資料：", data);
+                const elements = data.records?.Locations?.[0]?.Location?.[0]?.WeatherElement;
+                if (!elements) throw new Error("找不到 WeatherElement");
 
-        const elements = data.records?.Locations?.[0]?.Location?.[0]?.WeatherElement;
-        if (!elements) throw new Error("找不到 WeatherElement");
+                const tempList = elements.find(e => e.ElementName === "平均溫度")?.Time || [];
+                const humList = elements.find(e => e.ElementName === "平均相對濕度")?.Time || [];
 
-        const tempList = elements.find(e => e.ElementName === "平均溫度")?.Time || [];
-        const humList = elements.find(e => e.ElementName === "平均相對濕度")?.Time || [];
+                const tempResult = [];
+                const humResult = [];
 
-        const tempResult = [];
-        const humResult = [];
+                dates.forEach(datetime => {
+                    const dateOnly = datetime.split(" ")[0]; // "2025-04-21"
 
-        dates.forEach(datetime => {
-            const date = datetime.split(" ")[0]; // e.g., 2025-04-20
+                    // 找出最接近這天的預報資料（只比對日期，不比時間）
+                    const temp = tempList.find(t => t.StartTime.startsWith(dateOnly));
+                    const hum = humList.find(h => h.StartTime.startsWith(dateOnly));
 
-            // 找到 StartTime 為當天起始的預測值（每 12 小時一筆）
-            const temp = tempList.find(t => t.StartTime.startsWith(date));
-            const hum = humList.find(h => h.StartTime.startsWith(date));
+                    const tempVal = parseFloat(temp?.ElementValue?.[0]?.Value);
+                    const humVal = parseFloat(hum?.ElementValue?.[0]?.Value);
 
-            const tempValue = parseFloat(temp?.ElementValue?.[0]?.Value);
-            const humValue = parseFloat(hum?.ElementValue?.[0]?.Value);
+                    tempResult.push(!isNaN(tempVal) ? tempVal : 25);
+                    humResult.push(!isNaN(humVal) ? humVal : 60);
+                });
 
-            tempResult.push(!isNaN(tempValue) ? tempValue : 25);  // 預設溫度
-            humResult.push(!isNaN(humValue) ? humValue : 60);     // 預設濕度
-        });
-
-        return {
-            ambientTemperature: tempResult,
-            ambientHumidity: humResult
-        };
-    } catch (err) {
-        console.error("氣象 API 多日查詢失敗：", err);
-        const fallback = Array(dates.length).fill(0);
-        return {
-            ambientTemperature: fallback.map(() => 25),
-            ambientHumidity: fallback.map(() => 60)
-        };
-    }
-}
+                return {
+                    ambientTemperature: tempResult,
+                    ambientHumidity: humResult
+                };
+            } catch (err) {
+                console.error("氣象 API 多日查詢失敗：", err);
+                const fallback = Array(dates.length).fill(0);
+                return {
+                    ambientTemperature: fallback.map(() => 25),
+                    ambientHumidity: fallback.map(() => 60)
+                };
+            }
+        }
 
     </script>
 </body>
