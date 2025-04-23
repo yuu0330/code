@@ -86,31 +86,37 @@
             });
         }
         function login() {
-        const data = {
-            account: $("#loginAccount").val(),
-            password: $("#loginPassword").val()
-        };
-
-        $.ajax({
-            url: "/login",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(data),
-            success: function(response) {
-                if (response.success) {
-                    $("#loginNav").text("登出").attr("onclick", "logout()");
-                    sessionStorage.setItem("isLoggedIn", "true");
-                    sessionStorage.setItem("username", response.name);
-                    window.location.href = "/degree";
-                } else {
-                    alert(response.message);
-                }
-            },
-            error: function() {
-                alert("無法連線到伺服器!");
+            // 這裡直接設定預設帳號密碼（不再讀取輸入框）
+            if($("#loginAccount").val()=="user" && $("#loginPassword").val()=="1111" ){
+                window.location.href = "/degree";
             }
-        });
-    }
+        }
+    //     function login() {
+    //     const data = {
+    //         account: $("#loginAccount").val(),
+    //         password: $("#loginPassword").val()
+    //     };
+
+    //     $.ajax({
+    //         url: "/login",
+    //         type: "POST",
+    //         contentType: "application/json",
+    //         data: JSON.stringify(data),
+    //         success: function(response) {
+    //             if (response.success) {
+    //                 $("#loginNav").text("登出").attr("onclick", "logout()");
+    //                 sessionStorage.setItem("isLoggedIn", "true");
+    //                 sessionStorage.setItem("username", response.name);
+    //                 window.location.href = "/degree";
+    //             } else {
+    //                 alert(response.message);
+    //             }
+    //         },
+    //         error: function() {
+    //             alert("無法連線到伺服器!");
+    //         }
+    //     });
+    // }
 
         function logout() {
             $.get("/logout", function(response) {
