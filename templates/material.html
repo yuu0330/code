@@ -57,35 +57,62 @@
             <label for="use">用途：</label>
             <input type="text" id="use" name="use" required>
             
-            <label for="adjust">調劑：</label>
-            <input type="text" id="adjust" name="adjust" required>
-            <button type="submit">提交</button>
+            <div id="dynamicFields"></div>
+
+            <div class="add-buttons">
+                <button type="button" class="small-btn" id="addAdjust">＋ 新增調劑</button>
+                <button type="button" class="small-btn" id="addFertilizer">＋ 新增肥料</button>
+            </div>
+            
+            <div class="submit-wrapper">
+                <button type="submit">提交</button>
+            </div>
         </form>
     </div>
 
     <script>
         $(document).ready(function () {
+            // 表單送出處理（保留原本）
             $("#materialForm").submit(function (event) {
-                event.preventDefault();  // 阻止表單提交刷新頁面
+                event.preventDefault();
                 
                 let formData = {
                     name: $("#name").val(),
                     time: $("#time").val(),
                     place: $("#place").val(),
-                    use: $("#use").val()
+                    use: $("#use").val(),
+                    adjust: $("#adjust").val() || "",
+                    fertilizer: $("#fertilizer").val() || ""
                 };
 
                 $.post("/submit_material", formData, function (response) {
                     alert(response.message);
-
-                    // ✅ 清空表單內容
                     $("#materialForm")[0].reset();
+                    $("#dynamicFields").empty(); // 清空動態欄位
                 });
             });
-        });
 
-        // 確保下拉選單可以展開
-        $(document).ready(function () {
+            // 新增調劑欄位
+            $("#addAdjust").click(function () {
+                if (!$("#adjust").length) {
+                    $("#dynamicFields").append(`
+                        <label for="adjust">調劑內容：</label>
+                        <input type="text" id="adjust" name="adjust">
+                    `);
+                }
+            });
+
+            // 新增肥料欄位
+            $("#addFertilizer").click(function () {
+                if (!$("#fertilizer").length) {
+                    $("#dynamicFields").append(`
+                        <label for="fertilizer">肥料內容：</label>
+                        <input type="text" id="fertilizer" name="fertilizer">
+                    `);
+                }
+            });
+
+            // 下拉選單展開功能（保留原本）
             $(".dropbtn").click(function () {
                 $(".dropdown-content").not($(this).next()).slideUp(200);
                 $(this).next(".dropdown-content").slideToggle(200);
@@ -97,6 +124,7 @@
                 }
             });
         });
+
     </script>
 </body>
 </html>
