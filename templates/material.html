@@ -115,53 +115,76 @@
                 
             <div id="dynamicFields"></div>
 
+            <!-- 新增劑量欄位按鈕 -->
             <div class="add-buttons">
-                <button type="button" class="small-btn" id="addAdjust">＋ 新增調劑</button>
+                <button type="button" class="small-btn" id="addMaterialDose">＋ 新增資材劑量</button>
+                <button type="button" class="small-btn" id="addFertilizerDose">＋ 新增肥料劑量</button>
             </div>
             
             <div class="submit-wrapper">
-                <button type="submit">提交</button>
-            </div>
+                <div class="button-row">
+                    <button type="submit" id="submitBtn">提交</button>
+                    <button type="button" id="clearForm">清除</button>
+                </div>
+            </div>                                 
         </form>
     </div>
 
     <script>
         $(document).ready(function () {
-            // 表單送出處理（保留原本）
-            $("#materialForm").submit(function (event) {
+        // 提交處理
+        $("#materialForm").submit(function (event) {
                 event.preventDefault();
-                
+
                 let formData = {
                     name: ($("#name").val() === "其他" ? $("#nameOther").val() : $("#name").val()),
                     time: $("#time").val(),
                     place: ($("#place").val() === "其他" ? $("#placeOther").val() : $("#place").val()),
                     material: ($("#material").val() === "其他" ? $("#materialOther").val() : $("#material").val()),
-                    use: $("#use").val(),
-                    adjust: $("#adjust").val() || "",
                     fertilizer: ($("#fertilizer").val() === "其他" ? $("#fertilizerOther").val() : $("#fertilizer").val()),
+                    materialDose: $("#materialDose").val() || "",
+                    fertilizerDose: $("#fertilizerDose").val() || ""
                 };
 
                 $.post("/submit_material", formData, function (response) {
                     alert(response.message);
-                    $("#materialForm")[0].reset();
-                    $("#dynamicFields").empty(); // 清空動態欄位
-
-                    // 額外手動清空和隱藏「其他」欄位
-                    $("#nameOther").val("").hide();
-                    $("#placeOther").val("").hide();
-                    $("#materialOther").val("").hide();
-                    $("#material").val(""); // 重設資材選單
-                    $("#fertilizer").val("");
-                    $("#fertilizerOther").val("").hide();
+                    clearForm(); // 成功後清除欄位
                 });
             });
 
-            // 新增調劑欄位
-            $("#addAdjust").click(function () {
-                if (!$("#adjust").length) {
+            // 點擊清除按鈕時觸發
+            $("#clearForm").click(function () {
+                clearForm();
+            });
+
+            // 封裝清除所有欄位的函式
+            function clearForm() {
+                $("#materialForm")[0].reset();
+                $("#dynamicFields").empty();
+                $("#nameOther").val("").hide();
+                $("#placeOther").val("").hide();
+                $("#materialOther").val("").hide();
+                $("#fertilizerOther").val("").hide();
+                $("#material").val("");
+                $("#fertilizer").val("");
+            }
+
+            // 新增資材劑量欄位
+            $("#addMaterialDose").click(function () {
+                if (!$("#materialDose").length) {
                     $("#dynamicFields").append(`
-                        <label for="adjust">調劑內容：</label>
-                        <input type="text" id="adjust" name="adjust">
+                        <label for="materialDose">資材劑量：</label>
+                        <input type="text" id="materialDose" name="materialDose">
+                    `);
+                }
+            });
+
+            // 新增肥料劑量欄位
+            $("#addFertilizerDose").click(function () {
+                if (!$("#fertilizerDose").length) {
+                    $("#dynamicFields").append(`
+                        <label for="fertilizerDose">肥料劑量：</label>
+                        <input type="text" id="fertilizerDose" name="fertilizerDose">
                     `);
                 }
             });
@@ -199,6 +222,8 @@
             } else {
                 $("#fertilizerOther").hide();
             }
+            $("#materialDose").val("");
+            $("#fertilizerDose").val("");
         }
     </script>
 </body>
