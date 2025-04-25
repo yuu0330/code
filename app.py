@@ -13,12 +13,6 @@ app.secret_key = "your_secret_key"
 # Google Apps Script API URL
 GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycby_tt0I_ot4Yp_GW12j6TfIOZUS9Tskq-Ak5Kq9FlDOVz7UnQwIP13J2Q_2n1pwq46R6Q/exec"
 
-# 氣象 API 設定
-# API_URL = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035"
-# API_KEY = "CWA-233147B7-C268-43C1-BC20-C819EE149C00"
-# LOCATION_NAME = "內埔鄉"
-# ELEMENTS = "平均溫度,平均相對濕度"
-
 # 初始化 YOLO 模型
 model = YOLO("best.pt")
 
@@ -57,6 +51,23 @@ def results_history():
 def degree_history():
     return render_template("degree_history.html")
 
+# ====================== 環境溫濕度 API ======================
+@app.route("/weather_proxy")
+def weather_proxy():
+    url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035"
+    params = {
+        "Authorization": "CWA-233147B7-C268-43C1-BC20-C819EE149C00",
+        "format": "JSON",
+        "LocationName": "內埔鄉",
+        "ElementName": "平均溫度,平均相對濕度"
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        return jsonify(response.json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 # ====================== 農藥使用紀錄 API ======================
 @app.route("/submit_material", methods=["POST"])
 def submit_material():
@@ -362,4 +373,4 @@ def stream_redirect():
 # ====================== 啟動 Flask 伺服器 ======================
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0',port=8080,debug=True)

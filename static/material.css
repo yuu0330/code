@@ -209,3 +209,27 @@ tbody tr:hover {
     box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
     text-align: center;
 }
+
+/* 較小的功能按鈕（如新增調劑） */
+.small-btn {
+    background-color: #e7f5e9;
+    color: #2d7a39;
+    border: 1px dashed #85c399;
+    font-size: 0.95em;
+    padding: 6px 12px;
+    margin-bottom: 10px;
+    width: auto;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.small-btn:hover {
+    background-color: #d6f2de;
+}
+
+.submit-wrapper button {
+    width: auto;
+    padding: 10px 20px;
+    display: block;
+    margin: 20px auto 0 auto;
+}
