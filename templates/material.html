@@ -30,7 +30,7 @@
             </div>
     
             <div class="dropdown">
-                <button class="dropbtn">資材管理 ▼</button>
+                <button class="dropbtn">ICM管理 ▼</button>
                 <div class="dropdown-content">
                     <a href="/material">資材紀錄</a>
                     <a href="/material_history">歷史資料</a>
@@ -45,23 +45,78 @@
     <div class="content">
         <h2>農業資材-蟲害防治藥劑</h2>
         <form id="materialForm">
-            <label for="name">農藥名稱：</label>
-            <input type="text" id="name" name="name" required>
-
+            <label for="name">填表人：</label>
+            <select id="name" name="name" required onchange="toggleNameOther(this)">
+                <option value="" disabled selected>請選擇填表人</option>
+                <option value="勇銓">勇銓</option>
+                <option value="啟彰">啟彰</option>
+                <option value="慎之助">慎之助</option>
+                <option value="亭葦">亭葦</option>
+                <option value="誠邑">誠邑</option>
+                <option value="浩宇">浩宇</option>
+                <option value="玉慧">玉慧</option>
+                <option value="其他">其他</option>
+            </select>
+            <input type="text" id="nameOther" name="nameOther" placeholder="請輸入填表人姓名" style="display: none; margin-top: 10px;">
+            
             <label for="time">使用時間：</label>
             <input type="datetime-local" id="time" name="time" required>
 
             <label for="place">使用地點：</label>
-            <input type="text" id="place" name="place" required>
-
-            <label for="use">用途：</label>
-            <input type="text" id="use" name="use" required>
+            <select id="place" name="place" required onchange="toggleOtherInput(this)">
+                <option value="" disabled selected>請選擇使用地點</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="右區">右區</option>
+                <option value="黃金果區F1">黃金果區F1</option>
+                <option value="綜合果樹區F2">綜合果樹區F2</option>
+                <option value="G1溫室1">G1溫室1</option>
+                <option value="G2溫室2">G2溫室2</option>
+                <option value="G3溫室3">G3溫室3</option>
+                <option value="育苗區">育苗區</option>
+                <option value="資材室或工具室">資材室或工具室</option>
+                <option value="加工室(廚房或教室)">加工室(廚房或教室)</option>
+                <option value="其他">其他</option>
+            </select>
+            <input type="text" id="placeOther" name="placeOther" placeholder="請輸入其他地點" style="display:none; margin-top: 10px;">
             
+            <label for="material">病蟲害防治資材：</label>
+            <select id="material" name="material" required onchange="toggleMaterialOther(this)">
+                <option value="" disabled selected>請選擇資材名稱</option>
+                <option value="無施用">無施用</option>
+                <option value="葵無露">葵無露</option>
+                <option value="亞磷酸鉀">亞磷酸鉀</option>
+                <option value="木醋液">木醋液</option>
+                <option value="苦楝油">苦楝油</option>
+                <option value="苦茶粕">苦茶粕</option>
+                <option value="硫磺合劑">硫磺合劑</option>
+                <option value="波爾多液">波爾多液</option>
+                <option value="蘇力菌">蘇力菌</option>
+                <option value="其他">其他</option>
+            </select>
+            <input type="text" id="materialOther" name="materialOther" placeholder="請輸入其他資材名稱" style="display: none; margin-top: 10px;">
+            
+            <label for="fertilizer">施用的肥料或益生菌：</label>
+            <select id="fertilizer" name="fertilizer" required onchange="toggleFertilizerOther(this)">
+                <option value="" disabled selected>請選擇肥料名稱</option>
+                <option value="無施用">無施用</option>
+                <option value="市售有機堆肥">市售有機堆肥</option>
+                <option value="發酵過雞糞或鴨糞">發酵過雞糞或鴨糞</option>
+                <option value="自製液肥(農業廢棄物)">自製液肥(農業廢棄物)</option>
+                <option value="光合菌">光合菌</option>
+                <option value="治黃葉(噴粉芽孢桿菌)">治黃葉(噴粉芽孢桿菌)</option>
+                <option value="健達力蘇力菌">健達力蘇力菌</option>
+                <option value="菌根菌">菌根菌</option>
+                <option value="其他">其他</option>
+            </select>
+            <input type="text" id="fertilizerOther" name="fertilizerOther" placeholder="請輸入其他肥料名稱" style="display: none; margin-top: 10px;">
+                
             <div id="dynamicFields"></div>
 
             <div class="add-buttons">
                 <button type="button" class="small-btn" id="addAdjust">＋ 新增調劑</button>
-                <button type="button" class="small-btn" id="addFertilizer">＋ 新增肥料</button>
             </div>
             
             <div class="submit-wrapper">
@@ -77,18 +132,27 @@
                 event.preventDefault();
                 
                 let formData = {
-                    name: $("#name").val(),
+                    name: ($("#name").val() === "其他" ? $("#nameOther").val() : $("#name").val()),
                     time: $("#time").val(),
-                    place: $("#place").val(),
+                    place: ($("#place").val() === "其他" ? $("#placeOther").val() : $("#place").val()),
+                    material: ($("#material").val() === "其他" ? $("#materialOther").val() : $("#material").val()),
                     use: $("#use").val(),
                     adjust: $("#adjust").val() || "",
-                    fertilizer: $("#fertilizer").val() || ""
+                    fertilizer: ($("#fertilizer").val() === "其他" ? $("#fertilizerOther").val() : $("#fertilizer").val()),
                 };
 
                 $.post("/submit_material", formData, function (response) {
                     alert(response.message);
                     $("#materialForm")[0].reset();
                     $("#dynamicFields").empty(); // 清空動態欄位
+
+                    // 額外手動清空和隱藏「其他」欄位
+                    $("#nameOther").val("").hide();
+                    $("#placeOther").val("").hide();
+                    $("#materialOther").val("").hide();
+                    $("#material").val(""); // 重設資材選單
+                    $("#fertilizer").val("");
+                    $("#fertilizerOther").val("").hide();
                 });
             });
 
@@ -98,16 +162,6 @@
                     $("#dynamicFields").append(`
                         <label for="adjust">調劑內容：</label>
                         <input type="text" id="adjust" name="adjust">
-                    `);
-                }
-            });
-
-            // 新增肥料欄位
-            $("#addFertilizer").click(function () {
-                if (!$("#fertilizer").length) {
-                    $("#dynamicFields").append(`
-                        <label for="fertilizer">肥料內容：</label>
-                        <input type="text" id="fertilizer" name="fertilizer">
                     `);
                 }
             });
@@ -124,7 +178,28 @@
                 }
             });
         });
-
+        function toggleOtherInput(select) {
+            if (select.value === "其他") {
+                $("#placeOther").show();
+            } else {
+                $("#placeOther").hide();
+            }
+            if (select.value === "其他") {
+                $("#nameOther").show();
+            } else {
+                $("#nameOther").hide();
+            }
+            if (select.value === "其他") {
+                $("#materialOther").show();
+            } else {
+                $("#materialOther").hide();
+            }
+            if (select.value === "其他") {
+                $("#fertilizerOther").show();
+            } else {
+                $("#fertilizerOther").hide();
+            }
+        }
     </script>
 </body>
 </html>
