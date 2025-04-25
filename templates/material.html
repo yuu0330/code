@@ -61,7 +61,10 @@
             
             <label for="time">使用時間：</label>
             <input type="datetime-local" id="time" name="time" required>
-
+            <!-- 場域圖示 -->
+            <div class="map-image-wrapper">
+                <img src="/static/使用地點.png" alt="場域示意圖" class="map-image">
+            </div>
             <label for="place">使用地點：</label>
             <select id="place" name="place" required onchange="toggleOtherInput(this)">
                 <option value="" disabled selected>請選擇使用地點</option>
