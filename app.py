@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 # Google Apps Script API URL
-GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycby_tt0I_ot4Yp_GW12j6TfIOZUS9Tskq-Ak5Kq9FlDOVz7UnQwIP13J2Q_2n1pwq46R6Q/exec"
+GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbz53huxpRaJCt-Eb0aXMzzVm2Iyh_BWTLzlgNZAdwbSf16HFZw1zhDtpRlqtrpwZrFsMw/exec"
 
 # 初始化 YOLO 模型
 model = YOLO("best.pt")
@@ -71,32 +71,36 @@ def weather_proxy():
 # ====================== 農藥使用紀錄 API ======================
 @app.route("/submit_material", methods=["POST"])
 def submit_material():
-    """提交農藥使用紀錄到 Google 試算表"""
-    data = request.form.to_dict()
-    data["action"] = "add_material"
-
-    response = requests.post(GOOGLE_SHEET_API, json=data, headers={"Content-Type": "application/json"})
-
     try:
-        result = response.json()
-    except ValueError:
-        return jsonify({"success": False, "message": "API 回應格式錯誤"}), 500
+        data = request.form.to_dict()
+        print("[Debug] 接收到資料：", data)
 
-    return jsonify(result)
+        data["action"] = "add_material"
 
-# 只保留一個 `get_materials`
+        response = requests.post(
+            "https://script.google.com/macros/s/AKfycbz53huxpRaJCt-Eb0aXMzzVm2Iyh_BWTLzlgNZAdwbSf16HFZw1zhDtpRlqtrpwZrFsMw/exec",
+            json=data,
+            headers={"Content-Type": "application/json"}
+        )
+
+        print("[Debug] Google 回應狀態碼：", response.status_code)
+        print("[Debug] Google 回應內容：", response.text)
+
+        return jsonify(response.json())
+    except Exception as e:
+        print("[錯誤]", str(e))
+        return jsonify({"success": False, "message": f"提交失敗：{str(e)}"}), 500
+
 @app.route("/get_materials", methods=["GET"])
 def get_materials():
-    """獲取農藥使用歷史紀錄 (確保 `time` 顯示正確)"""
-    response = requests.get(GOOGLE_SHEET_API, params={"action": "get_materials"})
-
+    """取得農藥使用歷史紀錄資料"""
     try:
+        response = requests.get(GOOGLE_SHEET_API, params={"action": "get_materials"})
         records = response.json()
-    except ValueError:
-        return jsonify({"error": "API 回應格式錯誤"}), 500
-
-    return jsonify(records)
-
+        return jsonify(records)
+    except Exception as e:
+        return jsonify({"error": f"資料讀取失敗：{str(e)}"}), 500
+    
 # ====================== 病蟲監測 API ======================
 
 @app.route("/pest_data")

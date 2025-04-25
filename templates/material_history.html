@@ -49,12 +49,15 @@
         <table border="1">
             <thead>
                 <tr>
-                    <th>農藥名稱</th>
+                    <th>填表人</th>
                     <th>使用時間</th>
                     <th>使用地點</th>
-                    <th>用途</th>
+                    <th>資材名稱</th>
+                    <th>肥料名稱</th>
+                    <th>資材劑量</th>
+                    <th>肥料劑量</th>
                 </tr>
-            </thead>
+            </thead>            
             <tbody id="historyTable"></tbody>
         </table>
     </div>
@@ -84,7 +87,10 @@
                                 <td>${record.name}</td>
                                 <td>${record.time}</td>
                                 <td>${record.place}</td>
-                                <td>${record.use}</td>
+                                <td>${record.material}</td>
+                                <td>${record.fertilizer}</td>
+                                <td>${record.materialDose}</td>
+                                <td>${record.fertilizerDose}</td>
                             </tr>
                         `);
                     });

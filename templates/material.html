@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>資材管理</title>
+    <title>ICM管理</title>
     <link rel="stylesheet" href="/static/material.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
@@ -145,6 +145,7 @@
                     materialDose: $("#materialDose").val() || "",
                     fertilizerDose: $("#fertilizerDose").val() || ""
                 };
+                console.log("送出資料：", formData);
 
                 $.post("/submit_material", formData, function (response) {
                     alert(response.message);
@@ -225,6 +226,44 @@
             $("#materialDose").val("");
             $("#fertilizerDose").val("");
         }
+        function toggleNameOther(select) {
+            if (select.value === "其他") {
+                $("#nameOther").show();
+            } else {
+                $("#nameOther").hide();
+            }
+        }
+
+        function toggleMaterialOther(select) {
+            if (select.value === "其他") {
+                $("#materialOther").show();
+            } else {
+                $("#materialOther").hide();
+            }
+        }
+
+        function toggleFertilizerOther(select) {
+            if (select.value === "其他") {
+                $("#fertilizerOther").show();
+            } else {
+                $("#fertilizerOther").hide();
+            }
+        }
+        function doPost(e) {
+            try {
+                var params = JSON.parse(e.postData.contents);
+                if (params.action === "add_material") {
+                return addMaterialRecord(params);
+                } else {
+                return ContentService.createTextOutput(JSON.stringify({ success: false, message: "未知動作" }))
+                    .setMimeType(ContentService.MimeType.JSON);
+                }
+            } catch (error) {
+                return ContentService.createTextOutput(JSON.stringify({ success: false, message: "錯誤：" + error.message }))
+                .setMimeType(ContentService.MimeType.JSON);
+            }
+        }
+
     </script>
 </body>
 </html>
