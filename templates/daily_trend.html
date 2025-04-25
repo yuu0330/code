@@ -9,7 +9,6 @@
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
 </head>
 <body data-page="daily_trend">
-    <!-- 左側導覽列 -->
     <div class="navbar">
         <a href="/degree">
             <img src="/static/標題圖.png" alt="Logo" class="logo">
@@ -22,7 +21,6 @@
                     <a href="/degree_history">歷史資料</a>
                 </div>
             </div>
-    
             <div class="dropdown">
                 <button class="dropbtn">場域資料 ▼</button>
                 <div class="dropdown-content">
@@ -30,7 +28,6 @@
                     <a href="/results_history">歷史資料</a>
                 </div>
             </div>
-    
             <div class="dropdown">
                 <button class="dropbtn">ICM管理 ▼</button>
                 <div class="dropdown-content">
@@ -38,7 +35,6 @@
                     <a href="/material_history">歷史資料</a>
                 </div>
             </div>
-
             <div class="dropdown">
                 <a href="/daily_trend">每日變化</a>
             </div>
@@ -47,17 +43,11 @@
         </nav>
     </div>
 
-    <!-- 主內容區 -->
     <div class="content">
         <h2 class="page-title">每日變化趨勢分析</h2>
         <div class="daily-chart-wrapper">
-            <h2>每 2 小時溫度變化</h2>
-            <div id="temperatureChart"></div>
-        </div>
-
-        <div class="daily-chart-wrapper">
-            <h2>每 2 小時蟲數變化</h2>
-            <div id="pestChart"></div>
+            <h2>溫度與蟲數關係圖</h2>
+            <div id="combinedChart"></div>
         </div>
     </div>
 
@@ -67,73 +57,45 @@
                 const sortedTemperature = data.temperature.sort((a, b) => new Date(a[0]) - new Date(b[0]));
                 const sortedPests = data.pests.sort((a, b) => new Date(a[0]) - new Date(b[0]));
 
-                const times = sortedTemperature.map(item => item[0]); // 時間 ISO 字串
+                const times = sortedTemperature.map(item => item[0]);
                 const temperatures = sortedTemperature.map(item => item[1]);
                 const pestCounts = sortedPests.map(item => item[1]);
-
-                const tickvals = [];
-                const ticktexts = [];
-
-                times.forEach((timeStr, index) => {
-                    const date = new Date(timeStr);
-                    const hour = date.getHours().toString().padStart(2, '0');
-                    const minute = date.getMinutes().toString().padStart(2, '0');
-
-                    // 只顯示 00:00，或每 3 筆顯示一筆
-                    if ((hour === '00' && minute === '00') || index % 3 === 0) {
-                        tickvals.push(timeStr);
-
-                        if (hour === '00' && minute === '00') {
-                            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                            const day = date.getDate().toString().padStart(2, '0');
-                            ticktexts.push(`${month}/${day} ${hour}:${minute}`);
-                        } else {
-                            ticktexts.push(`${hour}:${minute}`);
-                        }
-                    }
-                });
 
                 const tempTrace = {
                     x: times,
                     y: temperatures,
-                    type: 'bar',
-                    marker: { color: 'red' },
-                    name: '溫度 (°C)'
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: '溫度 (°C)',
+                    yaxis: 'y1',
+                    line: { color: 'red' }
                 };
 
                 const pestTrace = {
                     x: times,
                     y: pestCounts,
-                    type: 'bar',
-                    marker: { color: 'green' },
-                    name: '蟲數'
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: '蟲數',
+                    yaxis: 'y2',
+                    line: { color: 'green' }
                 };
 
-                Plotly.newPlot("temperatureChart", [tempTrace], {
-                    xaxis: {
-                        title: "時間",
-                        tickvals: tickvals,
-                        ticktext: ticktexts,
-                        automargin: true
+                const layout = {
+                    xaxis: { title: '時間', automargin: true },
+                    yaxis: { title: '溫度 (°C)', side: 'left' },
+                    yaxis2: {
+                        title: '蟲數',
+                        overlaying: 'y',
+                        side: 'right'
                     },
-                    yaxis: { title: "溫度 (°C)" },
+                    legend: { x: 0, y: 1.1, orientation: 'h' },
                     margin: { t: 40 },
-                    width: 900,
-                    height: 400
-                });
+                    height: 450,
+                    responsive: true
+                };
 
-                Plotly.newPlot("pestChart", [pestTrace], {
-                    xaxis: {
-                        title: "時間",
-                        tickvals: tickvals,
-                        ticktext: ticktexts,
-                        automargin: true
-                    },
-                    yaxis: { title: "蟲數" },
-                    margin: { t: 40 },
-                    width: 900,
-                    height: 400
-                });
+                Plotly.newPlot("combinedChart", [tempTrace, pestTrace], layout);
             });
 
             $(".dropbtn").click(function () {

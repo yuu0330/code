@@ -306,7 +306,6 @@ def daily_trend():
     return render_template("daily_trend.html")
 @app.route("/fetch_daily_trend")
 def fetch_daily_trend():
-    """回傳今日或昨日每兩小時的溫度與蟲數資料，最多15筆"""
     now = datetime.now()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     interval = timedelta(hours=2)
@@ -315,13 +314,13 @@ def fetch_daily_trend():
     pest_data = []
     current = today_start
 
-    while current + interval <= now and len(temperature_data) < 15:
+    while current <= now:  # 原本是 current + interval <= now
         time_str = current.strftime("%Y-%m-%d %H:%M")
         temperature_data.append((time_str, round(random.uniform(22, 34), 1)))
         pest_data.append((time_str, random.randint(50, 150)))
         current += interval
 
-    # 如果資料太少就補昨天的
+    # 補昨天的資料（保留不動）
     if len(temperature_data) < 10:
         yesterday = today_start - timedelta(days=1)
         for i in range(15 - len(temperature_data)):
