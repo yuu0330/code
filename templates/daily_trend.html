@@ -64,9 +64,34 @@
     <script>
         $(document).ready(function () {
             $.get("/fetch_daily_trend", function (data) {
-                const times = data.temperature.map(item => item[0]);
-                const temperatures = data.temperature.map(item => item[1]);
-                const pests = data.pests.map(item => item[1]);
+                const sortedTemperature = data.temperature.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+                const sortedPests = data.pests.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+
+                const times = sortedTemperature.map(item => item[0]); // 時間 ISO 字串
+                const temperatures = sortedTemperature.map(item => item[1]);
+                const pestCounts = sortedPests.map(item => item[1]);
+
+                const tickvals = [];
+                const ticktexts = [];
+
+                times.forEach((timeStr, index) => {
+                    const date = new Date(timeStr);
+                    const hour = date.getHours().toString().padStart(2, '0');
+                    const minute = date.getMinutes().toString().padStart(2, '0');
+
+                    // 只顯示 00:00，或每 3 筆顯示一筆
+                    if ((hour === '00' && minute === '00') || index % 3 === 0) {
+                        tickvals.push(timeStr);
+
+                        if (hour === '00' && minute === '00') {
+                            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                            const day = date.getDate().toString().padStart(2, '0');
+                            ticktexts.push(`${month}/${day} ${hour}:${minute}`);
+                        } else {
+                            ticktexts.push(`${hour}:${minute}`);
+                        }
+                    }
+                });
 
                 const tempTrace = {
                     x: times,
@@ -78,14 +103,19 @@
 
                 const pestTrace = {
                     x: times,
-                    y: pests,
+                    y: pestCounts,
                     type: 'bar',
                     marker: { color: 'green' },
                     name: '蟲數'
                 };
 
                 Plotly.newPlot("temperatureChart", [tempTrace], {
-                    xaxis: { title: "時間" },
+                    xaxis: {
+                        title: "時間",
+                        tickvals: tickvals,
+                        ticktext: ticktexts,
+                        automargin: true
+                    },
                     yaxis: { title: "溫度 (°C)" },
                     margin: { t: 40 },
                     width: 900,
@@ -93,7 +123,12 @@
                 });
 
                 Plotly.newPlot("pestChart", [pestTrace], {
-                    xaxis: { title: "時間" },
+                    xaxis: {
+                        title: "時間",
+                        tickvals: tickvals,
+                        ticktext: ticktexts,
+                        automargin: true
+                    },
                     yaxis: { title: "蟲數" },
                     margin: { t: 40 },
                     width: 900,
