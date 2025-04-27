@@ -44,6 +44,20 @@
     <div class="stream-container">
         <h2>影像串流</h2>
         <img src="http://192.168.178.153:5000/api/stream" alt="樹梅派影像串流" width="720" height="480">
-    </div>    
+    </div>
+    <script>
+        $(document).ready(function () {
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+    </script>    
 </body>
 </html>
