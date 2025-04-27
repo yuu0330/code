@@ -395,12 +395,12 @@ body[data-page="degree_history"] .date-inputs button:hover {
 /* 圖表容器 */
 body[data-page="degree_history"] .chart-container {
     background: white;
-    padding: 20px;
+    padding: 30px;
     border-radius: 10px;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-    width: 85%;
-    max-width: 1100px;
-    height: 600px;
+    width: 95%;
+    max-width: 1400px;
+    height: 700px;    
     display: flex;
     align-items: center;
     justify-content: center;
@@ -521,12 +521,12 @@ body[data-page="results_history"] .date-inputs button:hover {
 /* 圖表容器 */
 body[data-page="results_history"] .chart-container {
     background: white;
-    padding: 20px;
+    padding: 30px;
     border-radius: 10px;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-    width: 85%;
-    max-width: 1100px;
-    height: 600px;
+    width: 95%;
+    max-width: 1400px;
+    height: 700px;    
     display: flex;
     align-items: center;
     justify-content: center;

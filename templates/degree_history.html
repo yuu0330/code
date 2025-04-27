@@ -61,7 +61,7 @@
             </div>
         </div>
     
-        <div class="chart-container">
+        <div class="chart-container" style="height: 600px; width: 90%;">
             <canvas id="myChart"></canvas>
         </div>
     </div>
@@ -130,9 +130,42 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { title: { display: true, text: "日期時間", font: { size: 16 } } },
-                        y: { title: { display: true, text: "數值", font: { size: 16 } } }
+                        x: {
+                            type: 'time', // 把X軸設成時間型態
+                            time: {
+                                unit: 'day', // 每一個標籤以「天」為單位，可以根據資料自動調整
+                                tooltipFormat: 'yyyy/MM/dd', // 提示框格式
+                                displayFormats: {
+                                    day: 'MM/dd' // X軸顯示成 月/日
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: "日期時間",
+                                font: { size: 16 }
+                            },
+                            ticks: {
+                                autoSkip: true, // 自動略過太擠的標籤
+                                maxTicksLimit: 10, // 最多顯示10個標籤
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: "數值",
+                                font: { size: 16 }
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
                     }
+
                 }
             });
         }

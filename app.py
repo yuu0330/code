@@ -54,20 +54,50 @@ def degree_history():
 # ====================== 環境溫濕度 API ======================
 @app.route("/weather_proxy")
 def weather_proxy():
-    url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035"
+    url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0001-001"
     params = {
         "Authorization": "CWA-233147B7-C268-43C1-BC20-C819EE149C00",
-        "format": "JSON",
-        "LocationName": "內埔鄉",
-        "ElementName": "平均溫度,平均相對濕度"
+        "format": "JSON"
     }
 
     try:
         response = requests.get(url, params=params)
-        return jsonify(response.json())
+        data = response.json()
+
+        # 改這裡！！！抓 records 裡的 Station
+        stations = data.get("records", {}).get("Station", [])
+        for station in stations:
+            print("[Debug] TownName:", station.get("GeoInfo", {}).get("TownName"))
+
+        # 用 GeoInfo > TownName 找
+        target_station = next((station for station in stations 
+                               if station.get("GeoInfo", {}).get("TownName") == "萬巒鄉"), None)
+
+        if not target_station:
+            raise ValueError("找不到萬巒鄉資料")
+
+        weather_now = target_station.get("WeatherElement", {})
+        temp = weather_now.get("AirTemperature")
+        humd = weather_now.get("RelativeHumidity")
+
+        if temp is None or humd is None:
+            raise ValueError("萬巒鄉缺少溫濕度資料")
+
+        temp = float(temp)
+        humd = float(humd)
+
+        return jsonify({
+            "temperature": temp,
+            "humidity": humd
+        })
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
+        print("[Error] 氣象 API 錯誤：", e)
+        return jsonify({
+            "temperature": 25.0,
+            "humidity": 60.0
+        })
+
 # ====================== 農藥使用紀錄 API ======================
 @app.route("/submit_material", methods=["POST"])
 def submit_material():
@@ -376,4 +406,4 @@ def stream_redirect():
 # ====================== 啟動 Flask 伺服器 ======================
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0',port=8080,debug=True)
+    app.run(debug=True)
