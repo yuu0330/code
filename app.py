@@ -64,10 +64,17 @@ def weather_proxy():
         response = requests.get(url, params=params)
         data = response.json()
 
+<<<<<<< HEAD
         # 抓 records 裡的 Station
         stations = data.get("records", {}).get("Station", [])
         # for station in stations:
         #     print("[Debug] TownName:", station.get("GeoInfo", {}).get("TownName"))
+=======
+        # 改這裡！！！抓 records 裡的 Station
+        stations = data.get("records", {}).get("Station", [])
+        for station in stations:
+            print("[Debug] TownName:", station.get("GeoInfo", {}).get("TownName"))
+>>>>>>> 0b5841ed37f617d598a7e6cea9057674abb406e2
 
         # 用 GeoInfo > TownName 找
         target_station = next((station for station in stations 
@@ -420,4 +427,4 @@ def stream_redirect():
 # ====================== 啟動 Flask 伺服器 ======================
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0',port=8080,debug=True)
+    app.run(debug=True)
