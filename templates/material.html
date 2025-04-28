@@ -84,7 +84,39 @@
                 <option value="其他">其他</option>
             </select>
             <input type="text" id="placeOther" name="placeOther" placeholder="請輸入其他地點" style="display:none; margin-top: 10px;">
-            
+            <label for="crop">工作對象農作物(若未列出，請務必於其他處寫出名稱)</label>
+            <select id="crop" name="crop" required onchange="toggleCropOther(this)">
+                <option value="" disabled selected>請選擇農作物</option>
+                <option value="無">無</option>
+                <option value="茄子">茄子</option>
+                <option value="秋葵">秋葵</option>
+                <option value="玉米筍">玉米筍</option>
+                <option value="玉米">玉米</option>
+                <option value="冬瓜">冬瓜</option>
+                <option value="南瓜">南瓜</option>
+                <option value="絲瓜">絲瓜</option>
+                <option value="紅豆">紅豆</option>
+                <option value="青花筍">青花筍</option>
+                <option value="高麗菜">高麗菜</option>
+                <option value="青椒">青椒</option>
+                <option value="辣椒">辣椒</option>
+                <option value="番茄">番茄</option>
+                <option value="洋蔥">洋蔥</option>
+                <option value="蔥">蔥</option>
+                <option value="甜菊葉">甜菊葉</option>
+                <option value="高蕃茄">高蕃茄</option>
+                <option value="白菜類">白菜類</option>
+                <option value="黃金果">黃金果</option>
+                <option value="苦瓜">苦瓜</option>
+                <option value="檸檬">檸檬</option>
+                <option value="百香果">百香果</option>
+                <option value="火龍果">火龍果</option>
+                <option value="畜禽製作物(高填加工、以下免答)">畜禽製作物(高填加工、以下免答)</option>
+                <option value="草莓">草莓</option>
+                <option value="其他">其他</option>
+            </select>
+            <input type="text" id="cropOther" name="cropOther" placeholder="請輸入其他農作物名稱" style="display: none; margin-top: 10px;">
+
             <label for="material">病蟲害防治資材：</label>
             <select id="material" name="material" required onchange="toggleMaterialOther(this)">
                 <option value="" disabled selected>請選擇資材名稱</option>
@@ -135,45 +167,54 @@
 
     <script>
         $(document).ready(function () {
-        // 提交處理
-        $("#materialForm").submit(function (event) {
+        
+            // ====== 表單提交處理 ======
+            $("#materialForm").submit(function (event) {
                 event.preventDefault();
-
+        
                 let formData = {
                     name: ($("#name").val() === "其他" ? $("#nameOther").val() : $("#name").val()),
                     time: $("#time").val(),
                     place: ($("#place").val() === "其他" ? $("#placeOther").val() : $("#place").val()),
+                    crops: ($("#crop").val() === "其他" ? $("#cropOther").val() : $("#crop").val()),
                     material: ($("#material").val() === "其他" ? $("#materialOther").val() : $("#material").val()),
                     fertilizer: ($("#fertilizer").val() === "其他" ? $("#fertilizerOther").val() : $("#fertilizer").val()),
                     materialDose: $("#materialDose").val() || "",
                     fertilizerDose: $("#fertilizerDose").val() || ""
                 };
-                console.log("送出資料：", formData);
-
-                $.post("/submit_material", formData, function (response) {
-                    alert(response.message);
-                    clearForm(); // 成功後清除欄位
+        
+                console.log("[Debug] 送出資料：", formData);
+        
+                $.ajax({
+                    url: "/submit_material",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(formData),
+                    success: function (response) {
+                        console.log("[Debug] 成功回應：", response);
+                        alert(response.message || "提交成功！");
+                        clearForm();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("[錯誤] 提交失敗：", xhr.responseText);
+                        alert("提交失敗：" + (xhr.responseJSON?.message || error));
+                    }
                 });
             });
-
-            // 點擊清除按鈕時觸發
+        
+            // ====== 清除表單 ======
             $("#clearForm").click(function () {
                 clearForm();
             });
-
-            // 封裝清除所有欄位的函式
+        
             function clearForm() {
                 $("#materialForm")[0].reset();
                 $("#dynamicFields").empty();
-                $("#nameOther").val("").hide();
-                $("#placeOther").val("").hide();
-                $("#materialOther").val("").hide();
-                $("#fertilizerOther").val("").hide();
-                $("#material").val("");
-                $("#fertilizer").val("");
+                $("#nameOther, #placeOther, #cropOther, #materialOther, #fertilizerOther").hide().val("");
+                console.log("[Debug] 表單已清除");
             }
-
-            // 新增資材劑量欄位
+        
+            // ====== 新增資材與肥料劑量欄位 ======
             $("#addMaterialDose").click(function () {
                 if (!$("#materialDose").length) {
                     $("#dynamicFields").append(`
@@ -182,8 +223,7 @@
                     `);
                 }
             });
-
-            // 新增肥料劑量欄位
+        
             $("#addFertilizerDose").click(function () {
                 if (!$("#fertilizerDose").length) {
                     $("#dynamicFields").append(`
@@ -192,81 +232,49 @@
                     `);
                 }
             });
-
-            // 下拉選單展開功能（保留原本）
+        
+            // ====== 控制「其他」輸入框顯示與隱藏 ======
+            $("#name").change(function () {
+                toggleOtherInput("#name", "#nameOther");
+            });
+        
+            $("#place").change(function () {
+                toggleOtherInput("#place", "#placeOther");
+            });
+        
+            $("#crop").change(function () {
+                toggleOtherInput("#crop", "#cropOther");
+            });
+        
+            $("#material").change(function () {
+                toggleOtherInput("#material", "#materialOther");
+            });
+        
+            $("#fertilizer").change(function () {
+                toggleOtherInput("#fertilizer", "#fertilizerOther");
+            });
+        
+            function toggleOtherInput(selectId, inputId) {
+                if ($(selectId).val() === "其他") {
+                    $(inputId).show();
+                } else {
+                    $(inputId).hide();
+                }
+            }
+        
+            // ====== 下拉選單展開收合功能 ======
             $(".dropbtn").click(function () {
                 $(".dropdown-content").not($(this).next()).slideUp(200);
                 $(this).next(".dropdown-content").slideToggle(200);
             });
-
+        
             $(document).click(function (event) {
                 if (!$(event.target).closest(".dropdown").length) {
                     $(".dropdown-content").slideUp(200);
                 }
             });
+        
         });
-        function toggleOtherInput(select) {
-            if (select.value === "其他") {
-                $("#placeOther").show();
-            } else {
-                $("#placeOther").hide();
-            }
-            if (select.value === "其他") {
-                $("#nameOther").show();
-            } else {
-                $("#nameOther").hide();
-            }
-            if (select.value === "其他") {
-                $("#materialOther").show();
-            } else {
-                $("#materialOther").hide();
-            }
-            if (select.value === "其他") {
-                $("#fertilizerOther").show();
-            } else {
-                $("#fertilizerOther").hide();
-            }
-            $("#materialDose").val("");
-            $("#fertilizerDose").val("");
-        }
-        function toggleNameOther(select) {
-            if (select.value === "其他") {
-                $("#nameOther").show();
-            } else {
-                $("#nameOther").hide();
-            }
-        }
-
-        function toggleMaterialOther(select) {
-            if (select.value === "其他") {
-                $("#materialOther").show();
-            } else {
-                $("#materialOther").hide();
-            }
-        }
-
-        function toggleFertilizerOther(select) {
-            if (select.value === "其他") {
-                $("#fertilizerOther").show();
-            } else {
-                $("#fertilizerOther").hide();
-            }
-        }
-        function doPost(e) {
-            try {
-                var params = JSON.parse(e.postData.contents);
-                if (params.action === "add_material") {
-                return addMaterialRecord(params);
-                } else {
-                return ContentService.createTextOutput(JSON.stringify({ success: false, message: "未知動作" }))
-                    .setMimeType(ContentService.MimeType.JSON);
-                }
-            } catch (error) {
-                return ContentService.createTextOutput(JSON.stringify({ success: false, message: "錯誤：" + error.message }))
-                .setMimeType(ContentService.MimeType.JSON);
-            }
-        }
-
-    </script>
+    </script>        
 </body>
 </html>

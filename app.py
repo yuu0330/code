@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 # Google Apps Script API URL
-GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbz53huxpRaJCt-Eb0aXMzzVm2Iyh_BWTLzlgNZAdwbSf16HFZw1zhDtpRlqtrpwZrFsMw/exec"
+GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbx9ozWGACE8wr4UjpV9B2Yv8B8WQBFgXS1vFlrPcEo0gz5sZCiZYMdeiDoNDWhR8bWkCQ/exec"
 
 # 初始化 YOLO 模型
 model = YOLO("best.pt")
@@ -54,31 +54,66 @@ def degree_history():
 # ====================== 環境溫濕度 API ======================
 @app.route("/weather_proxy")
 def weather_proxy():
-    url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035"
+    url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0001-001"
     params = {
         "Authorization": "CWA-233147B7-C268-43C1-BC20-C819EE149C00",
-        "format": "JSON",
-        "LocationName": "內埔鄉",
-        "ElementName": "平均溫度,平均相對濕度"
+        "format": "JSON"
     }
 
     try:
         response = requests.get(url, params=params)
-        return jsonify(response.json())
+        data = response.json()
+
+        # 抓 records 裡的 Station
+        stations = data.get("records", {}).get("Station", [])
+        # for station in stations:
+        #     print("[Debug] TownName:", station.get("GeoInfo", {}).get("TownName"))
+
+        # 用 GeoInfo > TownName 找
+        target_station = next((station for station in stations 
+                               if station.get("GeoInfo", {}).get("TownName") == "萬巒鄉"), None)
+
+        if not target_station:
+            raise ValueError("找不到萬巒鄉資料")
+
+        weather_now = target_station.get("WeatherElement", {})
+        temp = weather_now.get("AirTemperature")
+        humd = weather_now.get("RelativeHumidity")
+
+        if temp is None or humd is None:
+            raise ValueError("萬巒鄉缺少溫濕度資料")
+
+        temp = float(temp)
+        humd = float(humd)
+
+        return jsonify({
+            "temperature": temp,
+            "humidity": humd
+        })
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
+        print("[Error] 氣象 API 錯誤：", e)
+        return jsonify({
+            "temperature": 25.0,
+            "humidity": 60.0
+        })
+
 # ====================== 農藥使用紀錄 API ======================
+# ====================== 資材紀錄提交 API ======================
 @app.route("/submit_material", methods=["POST"])
 def submit_material():
+    """提交資材使用紀錄到 Google Sheets"""
     try:
-        data = request.form.to_dict()
+        # 用 JSON 方式接收資料（因為你是 POST json=data）
+        data = request.json
         print("[Debug] 接收到資料：", data)
 
+        # 補上動作類型
         data["action"] = "add_material"
 
+        # 送到 Google Apps Script
         response = requests.post(
-            "https://script.google.com/macros/s/AKfycbz53huxpRaJCt-Eb0aXMzzVm2Iyh_BWTLzlgNZAdwbSf16HFZw1zhDtpRlqtrpwZrFsMw/exec",
+            GOOGLE_SHEET_API,
             json=data,
             headers={"Content-Type": "application/json"}
         )
@@ -86,21 +121,30 @@ def submit_material():
         print("[Debug] Google 回應狀態碼：", response.status_code)
         print("[Debug] Google 回應內容：", response.text)
 
+        # 回傳 Apps Script 回來的結果
         return jsonify(response.json())
+
     except Exception as e:
         print("[錯誤]", str(e))
         return jsonify({"success": False, "message": f"提交失敗：{str(e)}"}), 500
 
+# ====================== 資材歷史紀錄讀取 API ======================
 @app.route("/get_materials", methods=["GET"])
 def get_materials():
-    """取得農藥使用歷史紀錄資料"""
+    """取得農藥使用歷史紀錄資料（包含農作物欄位）"""
     try:
+        # 加上 ?action=get_materials 參數叫 GAS 進行對應的資料讀取
         response = requests.get(GOOGLE_SHEET_API, params={"action": "get_materials"})
+
+        # Google Sheets 回傳的資料直接轉成 JSON
         records = response.json()
+
         return jsonify(records)
+
     except Exception as e:
+        print("[錯誤]", str(e))
         return jsonify({"error": f"資料讀取失敗：{str(e)}"}), 500
-    
+
 # ====================== 病蟲監測 API ======================
 
 @app.route("/pest_data")

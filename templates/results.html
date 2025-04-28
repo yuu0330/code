@@ -66,19 +66,11 @@
     <script>
         async function fetchWeatherData() {
             try {
-                let response = await fetch("/weather_proxy"); // ← 改成呼叫你自己的 Flask API
+                let response = await fetch("/weather_proxy");
                 let data = await response.json();
-                let locations = data.records.Locations;
-                let locationData = locations[0].Location.find(loc => loc.LocationName === "內埔鄉");
-                let elements = locationData.WeatherElement;
+                console.log("[Debug] 抓到溫溼度資料：", data);
 
-                let tempElement = elements.find(e => e.ElementName === "平均溫度");
-                let humidityElement = elements.find(e => e.ElementName === "平均相對濕度");
-
-                let temp = parseFloat(tempElement.Time[0].ElementValue[0].Value);
-                let humidity = parseFloat(humidityElement.Time[0].ElementValue[0].Value);
-
-                return { temperature: temp, humidity: humidity };
+                return { temperature: data.temperature, humidity: data.humidity };
             } catch (error) {
                 console.error("氣象 API 錯誤:", error);
                 return { temperature: 25, humidity: 60 };

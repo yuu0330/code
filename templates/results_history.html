@@ -61,7 +61,7 @@
             </div>
         </div>
     
-        <div class="chart-container" style="height: 600px;">
+        <div class="chart-container" style="height: 600px; width: 90%;">
             <canvas id="chartMain"></canvas>
         </div>        
     </div>
@@ -141,8 +141,26 @@
                     maintainAspectRatio: false,
                     scales: {
                         x: {
-                            title: { display: true, text: "日期時間", font: { size: 16 } },
-                            ticks: { maxRotation: 45, minRotation: 30 }
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'yyyy/MM/dd',
+                                displayFormats: {
+                                    day: 'MM/dd'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: "日期時間",
+                                font: { size: 16 }
+                            },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 10,
+                                font: {
+                                    size: 14
+                                }
+                            }
                         },
                         y: {
                             type: 'linear',
@@ -181,7 +199,21 @@
                         }
                     },
                     plugins: {
-                        legend: { position: "top" }
+                        legend: {
+                            position: "top",    // 圖例放到圖上方
+                            align: "center",    // 水平置中
+                            labels: {
+                                font: {
+                                    size: 16   // 圖例字體大小
+                                },
+                                padding: 20    // 圖例項目間的距離，讓它不要擠在一起
+                            }
+                        },
+                        tooltip: {
+                            bodyFont: {
+                                size: 16       // 提示文字也變大一點，使用者看得清楚
+                            }
+                        }
                     }
                 }
             });
