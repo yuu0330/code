@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 # Google Apps Script API URL
-GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbx9ozWGACE8wr4UjpV9B2Yv8B8WQBFgXS1vFlrPcEo0gz5sZCiZYMdeiDoNDWhR8bWkCQ/exec"
+GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbx9ryHwJK6Yhux2hmyazgF1VXtyXd1Ym4Qwu1BnEYZ-e7afJkz3PiQDhulvSHj7Mi7qeA/exec"
 
 # 初始化 YOLO 模型
 model = YOLO("best.pt")
@@ -64,17 +64,10 @@ def weather_proxy():
         response = requests.get(url, params=params)
         data = response.json()
 
-<<<<<<< HEAD
         # 抓 records 裡的 Station
         stations = data.get("records", {}).get("Station", [])
         # for station in stations:
         #     print("[Debug] TownName:", station.get("GeoInfo", {}).get("TownName"))
-=======
-        # 改這裡！！！抓 records 裡的 Station
-        stations = data.get("records", {}).get("Station", [])
-        for station in stations:
-            print("[Debug] TownName:", station.get("GeoInfo", {}).get("TownName"))
->>>>>>> 0b5841ed37f617d598a7e6cea9057674abb406e2
 
         # 用 GeoInfo > TownName 找
         target_station = next((station for station in stations 
@@ -427,4 +420,4 @@ def stream_redirect():
 # ====================== 啟動 Flask 伺服器 ======================
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0',port=8080,debug=True)

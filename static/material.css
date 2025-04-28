@@ -128,7 +128,9 @@ label {
     margin-bottom: 8px;
 }
 
-input, select {
+input[type="text"], 
+input[type="datetime-local"], 
+select {
     width: 100%;
     padding: 10px;
     font-size: 1.1em;
@@ -284,3 +286,24 @@ tbody tr:hover {
         align-items: center;
     }
 }
+/* checkbox 區域 */
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  .checkbox-group label {
+    width: 45%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .checkbox-group input[type="checkbox"] {
+    transform: scale(1.2);
+  }

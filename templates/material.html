@@ -1,280 +1,260 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICM管理</title>
-    <link rel="stylesheet" href="/static/material.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ICM管理</title>
+  <link rel="stylesheet" href="/static/material.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
+
 <body>
-    <div class="navbar">
-        <a href="/degree">
-            <img src="/static/標題圖.png" alt="Logo" class="logo">
-        </a>   
-        <nav>
-            <div class="dropdown">
-                <button class="dropbtn">害蟲模組 ▼</button>
-                <div class="dropdown-content">
-                    <a href="/degree">害蟲監測</a>
-                    <a href="/degree_history">歷史資料</a>
-                </div>
-            </div>
-    
-            <div class="dropdown">
-                <button class="dropbtn">場域資料 ▼</button>
-                <div class="dropdown-content">
-                    <a href="/results">環境監測</a>
-                    <a href="/results_history">歷史資料</a>
-                </div>
-            </div>
-    
-            <div class="dropdown">
-                <button class="dropbtn">ICM管理 ▼</button>
-                <div class="dropdown-content">
-                    <a href="/material">資材紀錄</a>
-                    <a href="/material_history">歷史資料</a>
-                </div>
-            </div>
-            <a href="/daily_trend">每日變化</a>
-            <a href="/video">場域串流</a>
-            <a href="/">登出</a>
-        </nav>
+<div class="navbar">
+  <a href="/degree"><img src="/static/標題圖.png" alt="Logo" class="logo"></a>
+  <nav>
+    <div class="dropdown">
+      <button class="dropbtn">害蟲模組 ▼</button>
+      <div class="dropdown-content">
+        <a href="/degree">害蟲監測</a>
+        <a href="/degree_history">歷史資料</a>
+      </div>
     </div>
-
-    <div class="content">
-        <h2>農業資材-蟲害防治藥劑</h2>
-        <form id="materialForm">
-            <label for="name">填表人：</label>
-            <select id="name" name="name" required onchange="toggleNameOther(this)">
-                <option value="" disabled selected>請選擇填表人</option>
-                <option value="勇銓">勇銓</option>
-                <option value="啟彰">啟彰</option>
-                <option value="慎之助">慎之助</option>
-                <option value="亭葦">亭葦</option>
-                <option value="誠邑">誠邑</option>
-                <option value="浩宇">浩宇</option>
-                <option value="玉慧">玉慧</option>
-                <option value="其他">其他</option>
-            </select>
-            <input type="text" id="nameOther" name="nameOther" placeholder="請輸入填表人姓名" style="display: none; margin-top: 10px;">
-            
-            <label for="time">使用時間：</label>
-            <input type="datetime-local" id="time" name="time" required>
-            <!-- 場域圖示 -->
-            <div class="map-image-wrapper">
-                <img src="/static/使用地點.png" alt="場域示意圖" class="map-image">
-            </div>
-            <label for="place">使用地點：</label>
-            <select id="place" name="place" required onchange="toggleOtherInput(this)">
-                <option value="" disabled selected>請選擇使用地點</option>
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
-                <option value="D">D</option>
-                <option value="右區">右區</option>
-                <option value="黃金果區F1">黃金果區F1</option>
-                <option value="綜合果樹區F2">綜合果樹區F2</option>
-                <option value="G1溫室1">G1溫室1</option>
-                <option value="G2溫室2">G2溫室2</option>
-                <option value="G3溫室3">G3溫室3</option>
-                <option value="育苗區">育苗區</option>
-                <option value="資材室或工具室">資材室或工具室</option>
-                <option value="加工室(廚房或教室)">加工室(廚房或教室)</option>
-                <option value="其他">其他</option>
-            </select>
-            <input type="text" id="placeOther" name="placeOther" placeholder="請輸入其他地點" style="display:none; margin-top: 10px;">
-            <label for="crop">工作對象農作物(若未列出，請務必於其他處寫出名稱)</label>
-            <select id="crop" name="crop" required onchange="toggleCropOther(this)">
-                <option value="" disabled selected>請選擇農作物</option>
-                <option value="無">無</option>
-                <option value="茄子">茄子</option>
-                <option value="秋葵">秋葵</option>
-                <option value="玉米筍">玉米筍</option>
-                <option value="玉米">玉米</option>
-                <option value="冬瓜">冬瓜</option>
-                <option value="南瓜">南瓜</option>
-                <option value="絲瓜">絲瓜</option>
-                <option value="紅豆">紅豆</option>
-                <option value="青花筍">青花筍</option>
-                <option value="高麗菜">高麗菜</option>
-                <option value="青椒">青椒</option>
-                <option value="辣椒">辣椒</option>
-                <option value="番茄">番茄</option>
-                <option value="洋蔥">洋蔥</option>
-                <option value="蔥">蔥</option>
-                <option value="甜菊葉">甜菊葉</option>
-                <option value="高蕃茄">高蕃茄</option>
-                <option value="白菜類">白菜類</option>
-                <option value="黃金果">黃金果</option>
-                <option value="苦瓜">苦瓜</option>
-                <option value="檸檬">檸檬</option>
-                <option value="百香果">百香果</option>
-                <option value="火龍果">火龍果</option>
-                <option value="畜禽製作物(高填加工、以下免答)">畜禽製作物(高填加工、以下免答)</option>
-                <option value="草莓">草莓</option>
-                <option value="其他">其他</option>
-            </select>
-            <input type="text" id="cropOther" name="cropOther" placeholder="請輸入其他農作物名稱" style="display: none; margin-top: 10px;">
-
-            <label for="material">病蟲害防治資材：</label>
-            <select id="material" name="material" required onchange="toggleMaterialOther(this)">
-                <option value="" disabled selected>請選擇資材名稱</option>
-                <option value="無施用">無施用</option>
-                <option value="葵無露">葵無露</option>
-                <option value="亞磷酸鉀">亞磷酸鉀</option>
-                <option value="木醋液">木醋液</option>
-                <option value="苦楝油">苦楝油</option>
-                <option value="苦茶粕">苦茶粕</option>
-                <option value="硫磺合劑">硫磺合劑</option>
-                <option value="波爾多液">波爾多液</option>
-                <option value="蘇力菌">蘇力菌</option>
-                <option value="其他">其他</option>
-            </select>
-            <input type="text" id="materialOther" name="materialOther" placeholder="請輸入其他資材名稱" style="display: none; margin-top: 10px;">
-            
-            <label for="fertilizer">施用的肥料或益生菌：</label>
-            <select id="fertilizer" name="fertilizer" required onchange="toggleFertilizerOther(this)">
-                <option value="" disabled selected>請選擇肥料名稱</option>
-                <option value="無施用">無施用</option>
-                <option value="市售有機堆肥">市售有機堆肥</option>
-                <option value="發酵過雞糞或鴨糞">發酵過雞糞或鴨糞</option>
-                <option value="自製液肥(農業廢棄物)">自製液肥(農業廢棄物)</option>
-                <option value="光合菌">光合菌</option>
-                <option value="治黃葉(噴粉芽孢桿菌)">治黃葉(噴粉芽孢桿菌)</option>
-                <option value="健達力蘇力菌">健達力蘇力菌</option>
-                <option value="菌根菌">菌根菌</option>
-                <option value="其他">其他</option>
-            </select>
-            <input type="text" id="fertilizerOther" name="fertilizerOther" placeholder="請輸入其他肥料名稱" style="display: none; margin-top: 10px;">
-                
-            <div id="dynamicFields"></div>
-
-            <!-- 新增劑量欄位按鈕 -->
-            <div class="add-buttons">
-                <button type="button" class="small-btn" id="addMaterialDose">＋ 新增資材劑量</button>
-                <button type="button" class="small-btn" id="addFertilizerDose">＋ 新增肥料劑量</button>
-            </div>
-            
-            <div class="submit-wrapper">
-                <div class="button-row">
-                    <button type="submit" id="submitBtn">提交</button>
-                    <button type="button" id="clearForm">清除</button>
-                </div>
-            </div>                                 
-        </form>
+    <div class="dropdown">
+      <button class="dropbtn">場域資料 ▼</button>
+      <div class="dropdown-content">
+        <a href="/results">環境監測</a>
+        <a href="/results_history">歷史資料</a>
+      </div>
     </div>
+    <div class="dropdown">
+      <button class="dropbtn">ICM管理 ▼</button>
+      <div class="dropdown-content">
+        <a href="/material">資材紀錄</a>
+        <a href="/material_history">歷史資料</a>
+      </div>
+    </div>
+    <a href="/daily_trend">每日變化</a>
+    <a href="/video">場域串流</a>
+    <a href="/">登出</a>
+  </nav>
+</div>
 
-    <script>
-        $(document).ready(function () {
-        
-            // ====== 表單提交處理 ======
-            $("#materialForm").submit(function (event) {
-                event.preventDefault();
-        
-                let formData = {
-                    name: ($("#name").val() === "其他" ? $("#nameOther").val() : $("#name").val()),
-                    time: $("#time").val(),
-                    place: ($("#place").val() === "其他" ? $("#placeOther").val() : $("#place").val()),
-                    crops: ($("#crop").val() === "其他" ? $("#cropOther").val() : $("#crop").val()),
-                    material: ($("#material").val() === "其他" ? $("#materialOther").val() : $("#material").val()),
-                    fertilizer: ($("#fertilizer").val() === "其他" ? $("#fertilizerOther").val() : $("#fertilizer").val()),
-                    materialDose: $("#materialDose").val() || "",
-                    fertilizerDose: $("#fertilizerDose").val() || ""
-                };
-        
-                console.log("[Debug] 送出資料：", formData);
-        
-                $.ajax({
-                    url: "/submit_material",
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(formData),
-                    success: function (response) {
-                        console.log("[Debug] 成功回應：", response);
-                        alert(response.message || "提交成功！");
-                        clearForm();
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("[錯誤] 提交失敗：", xhr.responseText);
-                        alert("提交失敗：" + (xhr.responseJSON?.message || error));
-                    }
-                });
-            });
-        
-            // ====== 清除表單 ======
-            $("#clearForm").click(function () {
-                clearForm();
-            });
-        
-            function clearForm() {
-                $("#materialForm")[0].reset();
-                $("#dynamicFields").empty();
-                $("#nameOther, #placeOther, #cropOther, #materialOther, #fertilizerOther").hide().val("");
-                console.log("[Debug] 表單已清除");
-            }
-        
-            // ====== 新增資材與肥料劑量欄位 ======
-            $("#addMaterialDose").click(function () {
-                if (!$("#materialDose").length) {
-                    $("#dynamicFields").append(`
-                        <label for="materialDose">資材劑量：</label>
-                        <input type="text" id="materialDose" name="materialDose">
-                    `);
-                }
-            });
-        
-            $("#addFertilizerDose").click(function () {
-                if (!$("#fertilizerDose").length) {
-                    $("#dynamicFields").append(`
-                        <label for="fertilizerDose">肥料劑量：</label>
-                        <input type="text" id="fertilizerDose" name="fertilizerDose">
-                    `);
-                }
-            });
-        
-            // ====== 控制「其他」輸入框顯示與隱藏 ======
-            $("#name").change(function () {
-                toggleOtherInput("#name", "#nameOther");
-            });
-        
-            $("#place").change(function () {
-                toggleOtherInput("#place", "#placeOther");
-            });
-        
-            $("#crop").change(function () {
-                toggleOtherInput("#crop", "#cropOther");
-            });
-        
-            $("#material").change(function () {
-                toggleOtherInput("#material", "#materialOther");
-            });
-        
-            $("#fertilizer").change(function () {
-                toggleOtherInput("#fertilizer", "#fertilizerOther");
-            });
-        
-            function toggleOtherInput(selectId, inputId) {
-                if ($(selectId).val() === "其他") {
-                    $(inputId).show();
-                } else {
-                    $(inputId).hide();
-                }
-            }
-        
-            // ====== 下拉選單展開收合功能 ======
-            $(".dropbtn").click(function () {
-                $(".dropdown-content").not($(this).next()).slideUp(200);
-                $(this).next(".dropdown-content").slideToggle(200);
-            });
-        
-            $(document).click(function (event) {
-                if (!$(event.target).closest(".dropdown").length) {
-                    $(".dropdown-content").slideUp(200);
-                }
-            });
-        
+<div class="content">
+    <h2>農業資材-蟲害防治藥劑</h2>
+    <form id="materialForm">
+      <label for="name">填表人：</label>
+      <select id="name" name="name" required>
+        <option>請選擇填表人</option>
+        <option>勇銓</option>
+        <option>啟彰</option>
+        <option>慎之助</option>
+        <option>亭葦</option>
+        <option>誠邑</option>
+        <option>浩宇</option>
+        <option>玉慧</option>
+        <option>其他</option>
+      </select>
+      <input type="text" id="nameOther" name="nameOther" placeholder="請輸入填表人姓名" style="display:none; margin-top:10px;">
+  
+      <label for="time">使用時間：</label>
+      <input type="datetime-local" id="time" name="time" required>
+  
+      <div class="map-image-wrapper">
+        <img src="/static/使用地點.png" alt="場域示意圖" class="map-image">
+      </div>
+  
+      <!-- 使用地點 -->
+      <label>使用地點：</label>
+      <div class="checkbox-group" id="place-group">
+        <label><input type="checkbox" name="place[]" value="A"> A</label>
+        <label><input type="checkbox" name="place[]" value="B"> B</label>
+        <label><input type="checkbox" name="place[]" value="C"> C</label>
+        <label><input type="checkbox" name="place[]" value="D"> D</label>
+        <label><input type="checkbox" name="place[]" value="右區"> 右區</label>
+        <label><input type="checkbox" name="place[]" value="黃金果區F1"> 黃金果區F1</label>
+        <label><input type="checkbox" name="place[]" value="綜合果樹區F2"> 綜合果樹區F2</label>
+        <label><input type="checkbox" name="place[]" value="G1溫室1"> G1溫室1</label>
+        <label><input type="checkbox" name="place[]" value="G2溫室2"> G2溫室2</label>
+        <label><input type="checkbox" name="place[]" value="G3溫室3"> G3溫室3</label>
+        <label><input type="checkbox" name="place[]" value="育苗區"> 育苗區</label>
+        <label><input type="checkbox" name="place[]" value="資材室或工具室"> 資材室或工具室</label>
+        <label><input type="checkbox" name="place[]" value="加工室(廚房或教室)"> 加工室(廚房或教室)</label>
+        <label><input type="checkbox" name="place[]" value="其他"> 其他</label>
+      </div>
+      <div id="placeOtherWrapper" style="display:none; margin-bottom:10px;">
+        <label>請輸入其他地點：</label>
+        <input type="text" id="placeOther">
+      </div>
+  
+      <!-- 工作對象農作物 -->
+      <label>工作對象農作物：</label>
+      <div class="checkbox-group" id="crop-group">
+        <label><input type="checkbox" name="crop[]" value="無"> 無</label>
+        <label><input type="checkbox" name="crop[]" value="茄子"> 茄子</label>
+        <label><input type="checkbox" name="crop[]" value="秋葵"> 秋葵</label>
+        <label><input type="checkbox" name="crop[]" value="玉米筍"> 玉米筍</label>
+        <label><input type="checkbox" name="crop[]" value="玉米"> 玉米</label>
+        <label><input type="checkbox" name="crop[]" value="冬瓜"> 冬瓜</label>
+        <label><input type="checkbox" name="crop[]" value="南瓜"> 南瓜</label>
+        <label><input type="checkbox" name="crop[]" value="莧瓜"> 莧瓜</label>
+        <label><input type="checkbox" name="crop[]" value="絲瓜"> 絲瓜</label>
+        <label><input type="checkbox" name="crop[]" value="紅豆"> 紅豆</label>
+        <label><input type="checkbox" name="crop[]" value="青花筍"> 青花筍</label>
+        <label><input type="checkbox" name="crop[]" value="高麗菜"> 高麗菜</label>
+        <label><input type="checkbox" name="crop[]" value="青椒"> 青椒</label>
+        <label><input type="checkbox" name="crop[]" value="辣椒"> 辣椒</label>
+        <label><input type="checkbox" name="crop[]" value="番茄"> 番茄</label>
+        <label><input type="checkbox" name="crop[]" value="洋蔥"> 洋蔥</label>
+        <label><input type="checkbox" name="crop[]" value="蔥"> 蔥</label>
+        <label><input type="checkbox" name="crop[]" value="番薯葉"> 番薯葉</label>
+        <label><input type="checkbox" name="crop[]" value="高莖類"> 高莖類</label>
+        <label><input type="checkbox" name="crop[]" value="白菜類"> 白菜類</label>
+        <label><input type="checkbox" name="crop[]" value="黃金果"> 黃金果</label>
+        <label><input type="checkbox" name="crop[]" value="芒果"> 芒果</label>
+        <label><input type="checkbox" name="crop[]" value="檸檬"> 檸檬</label>
+        <label><input type="checkbox" name="crop[]" value="百香果"> 百香果</label>
+        <label><input type="checkbox" name="crop[]" value="火龍果"> 火龍果</label>
+        <label><input type="checkbox" name="crop[]" value="畜禽製作物"> 畜禽製作物</label>
+        <label><input type="checkbox" name="crop[]" value="草莓"> 草莓</label>
+        <label><input type="checkbox" name="crop[]" value="其他"> 其他</label>
+      </div>
+      <div id="cropOtherWrapper" style="display:none; margin-bottom:10px;">
+        <label>請輸入其他農作物：</label>
+        <input type="text" id="cropOther">
+      </div>
+  
+      <!-- 病蟲害防治資材 -->
+      <label>病蟲害防治資材：</label>
+      <div class="checkbox-group" id="material-group">
+        <label><input type="checkbox" name="material[]" value="無施用"> 無施用</label>
+        <label><input type="checkbox" name="material[]" value="葵無露"> 葵無露</label>
+        <label><input type="checkbox" name="material[]" value="亞磷酸鉀"> 亞磷酸鉀</label>
+        <label><input type="checkbox" name="material[]" value="木醋液"> 木醋液</label>
+        <label><input type="checkbox" name="material[]" value="苦楝油"> 苦楝油</label>
+        <label><input type="checkbox" name="material[]" value="苦茶粕"> 苦茶粕</label>
+        <label><input type="checkbox" name="material[]" value="硫磺合劑"> 硫磺合劑</label>
+        <label><input type="checkbox" name="material[]" value="波爾多液"> 波爾多液</label>
+        <label><input type="checkbox" name="material[]" value="蘇力菌"> 蘇力菌</label>
+        <label><input type="checkbox" name="material[]" value="其他"> 其他</label>
+      </div>
+      <div id="materialOtherWrapper" style="display:none; margin-bottom:10px;">
+        <label>請輸入其他資材名稱：</label>
+        <input type="text" id="materialOther">
+      </div>
+  
+      <!-- 肥料 -->
+      <label>施用的肥料或益生菌：</label>
+      <div class="checkbox-group" id="fertilizer-group">
+        <label><input type="checkbox" name="fertilizer[]" value="無施用"> 無施用</label>
+        <label><input type="checkbox" name="fertilizer[]" value="市售有機堆肥"> 市售有機堆肥</label>
+        <label><input type="checkbox" name="fertilizer[]" value="發酵過雞糞或鴨糞"> 發酵過雞糞或鴨糞</label>
+        <label><input type="checkbox" name="fertilizer[]" value="自製液肥(農業廢棄物)"> 自製液肥(農業廢棄物)</label>
+        <label><input type="checkbox" name="fertilizer[]" value="光合菌"> 光合菌</label>
+        <label><input type="checkbox" name="fertilizer[]" value="治黃葉(噴粉芽孢桿菌)"> 治黃葉(噴粉芽孢桿菌)</label>
+        <label><input type="checkbox" name="fertilizer[]" value="健達力蘇力菌"> 健達力蘇力菌</label>
+        <label><input type="checkbox" name="fertilizer[]" value="菌根菌"> 菌根菌</label>
+        <label><input type="checkbox" name="fertilizer[]" value="其他"> 其他</label>
+      </div>
+      <div id="fertilizerOtherWrapper" style="display:none; margin-bottom:10px;">
+        <label>請輸入其他肥料名稱：</label>
+        <input type="text" id="fertilizerOther">
+      </div>
+  
+      <div class="submit-wrapper">
+        <button type="submit" id="submitBtn">提交</button>
+        <button type="button" id="clearForm">清除</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      // 表單送出
+      $("#materialForm").submit(function (event) {
+        event.preventDefault();
+        let formData = {
+          name: ($("#name").val() === "其他" ? $("#nameOther").val() : $("#name").val()),
+          time: $("#time").val(),
+          place: getCheckedValues("place[]", "placeOther"),
+          crops: getCheckedValues("crop[]", "cropOther"),
+          material: getCheckedValues("material[]", "materialOther"),
+          fertilizer: getCheckedValues("fertilizer[]", "fertilizerOther")
+        };
+        console.log("[Debug] 送出資料：", formData);
+    
+        $.ajax({
+          url: "/submit_material",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify(formData),
+          success: function (response) {
+            alert(response.message || "提交成功！");
+            clearForm();
+          },
+          error: function (xhr, status, error) {
+            alert("提交失敗：" + (xhr.responseJSON?.message || error));
+          }
         });
-    </script>        
+      });
+    
+      // 勾選"其他"顯示輸入欄位
+      function bindOtherCheckbox(groupName, wrapperId) {
+        $("input[name='" + groupName + "']").change(function () {
+          if ($(this).val() === "其他" && $(this).is(":checked")) {
+            $("#" + wrapperId).show();
+          } else if ($(this).val() === "其他" && !$(this).is(":checked")) {
+            $("#" + wrapperId).hide().find("input").val("");
+          }
+        });
+      }
+      bindOtherCheckbox("place[]", "placeOtherWrapper");
+      bindOtherCheckbox("crop[]", "cropOtherWrapper");
+      bindOtherCheckbox("material[]", "materialOtherWrapper");
+      bindOtherCheckbox("fertilizer[]", "fertilizerOtherWrapper");
+    
+      // 取得複選框
+      function getCheckedValues(name, otherId) {
+        let selected = [];
+        $("input[name='" + name + "']:checked").each(function () {
+          selected.push($(this).val());
+        });
+        if (selected.includes("其他")) {
+          selected = selected.filter(v => v !== "其他");
+          selected.push($("#" + otherId).val());
+        }
+        return selected;
+      }
+    
+      // 清除表單
+      function clearForm() {
+        $("#materialForm")[0].reset();
+        $(".checkbox-group input[type=checkbox]").prop('checked', false);
+        $(".other-wrapper").hide().find("input").val("");
+        $("#nameOther, #placeOther, #cropOther, #materialOther, #fertilizerOther").hide().val("");
+      }
+    
+      // 填表人選擇其他顯示輸入
+      $("#name").change(function () {
+        if ($(this).val() === "其他") {
+          $("#nameOther").show();
+        } else {
+          $("#nameOther").hide().val("");
+        }
+      });
+    
+      // 下拉選單動畫
+      $(".dropbtn").click(function () {
+        $(".dropdown-content").not($(this).next()).slideUp(200);
+        $(this).next(".dropdown-content").slideToggle(200);
+      });
+    
+      $(document).click(function (event) {
+        if (!$(event.target).closest(".dropdown").length) {
+          $(".dropdown-content").slideUp(200);
+        }
+      });
+    });
+    </script>
+    
 </body>
 </html>
