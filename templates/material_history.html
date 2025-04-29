@@ -8,6 +8,20 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <style>
+        /* 表格欄位統一設定 */
+        #historyTable td, #historyTable th {
+            white-space: nowrap;        /* 不換行 */
+            overflow: hidden;           /* 超出隱藏 */
+            text-overflow: ellipsis;    /* 超出用...顯示 */
+            max-width: 200px;           /* 限制最大寬度 */
+        }
+        
+        /* 篩選下拉選單的寬度也限制一下 */
+        #historyTable thead select {
+            max-width: 100px;
+        }
+        </style>        
 </head>
 <body>
     <div class="navbar">
