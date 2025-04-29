@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 # Google Apps Script API URL
-GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbx9ryHwJK6Yhux2hmyazgF1VXtyXd1Ym4Qwu1BnEYZ-e7afJkz3PiQDhulvSHj7Mi7qeA/exec"
+GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbwMh3kIbXRs9npW8YUmsBXZwd6mcU6UrQhx6Rn4Euk3Awct_AhiQpJWv4-LqzALc_4Sag/exec"
 
 # 初始化 YOLO 模型
 model = YOLO("best.pt")
