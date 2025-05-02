@@ -307,3 +307,22 @@ tbody tr:hover {
   .checkbox-group input[type="checkbox"] {
     transform: scale(1.2);
   }
+  
+
+  .stream-container {
+    margin-left: 270px; /* 和內容對齊 */
+    text-align: center;
+    padding: 40px;
+}
+
+.stream-container img {
+    max-width: 90%;
+    height: auto;
+    border: 3px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+body[data-page="video"] .stream-container img {
+    border-radius: 0;
+}

@@ -404,9 +404,13 @@ def gen_frames():
             frame = buffer.tobytes()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            
+@app.route("/one")
+def video():
+    return render_template("one.html")
 
 @app.route("/video")
-def video():
+def one():
     return render_template("video.html")
 
 @app.route("/video_feed")
@@ -415,7 +419,7 @@ def video_feed():
 
 @app.route("/stream_redirect")
 def stream_redirect():
-    return redirect("http://192.168.178.153:5000/api/stream")
+    return redirect("http://192.168.1.39:5000/api/stream")
 
 # ====================== 啟動 Flask 伺服器 ======================
 
