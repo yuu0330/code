@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>病蟲害偵測及警示整合系統</title>
+    <link rel="stylesheet" href="/static/index.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+
+    <!-- 左側導覽列 -->
+    <div class="sidebar">
+        <img src="/static/標題圖.png" alt="Logo" class="sidebar-logo">
+        <nav>
+            <a href="#" id="loginNav" onclick="showLogin()">登入</a>
+            <a href="#" class="hidden" id="logoutButton" onclick="logout()">登出</a>
+        </nav>
+    </div>
+    
+    <!-- 主要內容區 -->
+    <div class="content">
+        <!-- 登入表單 -->
+        <div class="container" id="loginContainer">
+            <h2>會員登入</h2>
+            <input type="text" id="loginAccount" placeholder="帳號">
+            <input type="password" id="loginPassword" placeholder="密碼">
+            <button onclick="login()">登入</button>
+            <button class="register-button" onclick="showRegister()">註冊</button>
+        </div>
+
+        <!-- 註冊表單 -->
+        <div class="container hidden" id="registerContainer">
+            <h2>建立會員</h2>
+            <input type="text" id="regName" placeholder="姓名">
+            <input type="text" id="regPhone" placeholder="電話">
+            <input type="text" id="regAccount" placeholder="帳號">
+            <input type="password" id="regPassword" placeholder="密碼">
+            <input type="number" id="regSize" placeholder="種地大小(公頃)">
+            <button onclick="register()">註冊</button>
+            <button onclick="showLogin()">返回登入</button>
+        </div>
+
+        <!-- 登入後介面 -->
+        <div class="container hidden" id="welcomeContainer">
+            <h2 id="welcomeText"></h2>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            checkLoginStatus();
+        });
+
+        function showRegister() {
+            $("#loginContainer").hide();
+            $("#registerContainer").show();
+        }
+
+        function showLogin() {
+            $("#registerContainer").hide();
+            $("#loginContainer").show();
+        }
+
+        function register() {
+            const data = {
+                name: $("#regName").val(),
+                phone: $("#regPhone").val(),
+                account: $("#regAccount").val(),
+                pw: $("#regPassword").val(),
+                size: $("#regSize").val()
+            };
+
+            $.ajax({
+                url: "/register",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(data),
+                success: function(response) {
+                    alert(response.message);
+                    if (response.success) showLogin();
+                },
+                error: function() {
+                    alert("無法連線到伺服器!");
+                }
+            });
+        }
+        function login() {
+            // 這裡直接設定預設帳號密碼（不再讀取輸入框）
+            if($("#loginAccount").val()=="minar" && $("#loginPassword").val()=="minar7917" ){
+                window.location.href = "/degree";
+            }
+        }
+    //     function login() {
+    //     const data = {
+    //         account: $("#loginAccount").val(),
+    //         password: $("#loginPassword").val()
+    //     };
+
+    //     $.ajax({
+    //         url: "/login",
+    //         type: "POST",
+    //         contentType: "application/json",
+    //         data: JSON.stringify(data),
+    //         success: function(response) {
+    //             if (response.success) {
+    //                 $("#loginNav").text("登出").attr("onclick", "logout()");
+    //                 sessionStorage.setItem("isLoggedIn", "true");
+    //                 sessionStorage.setItem("username", response.name);
+    //                 window.location.href = "/degree";
+    //             } else {
+    //                 alert(response.message);
+    //             }
+    //         },
+    //         error: function() {
+    //             alert("無法連線到伺服器!");
+    //         }
+    //     });
+    // }
+
+        function logout() {
+            $.get("/logout", function(response) {
+                sessionStorage.clear();
+                updateNavBar(null);
+                window.location.href = "/";
+            });
+        }
+
+        function updateNavBar(username) {
+            if (username) {
+                $("#loginContainer, #registerContainer").hide();
+                $("#welcomeContainer").show();
+                $("#loginNav").addClass("hidden");         // 登入按鈕隱藏
+                $("#logoutButton").removeClass("hidden");  // 顯示登出
+                $("#degreeOption, #resultsOption, #historyOption").removeClass("hidden");
+            } else {
+                $("#loginContainer").show();
+                $("#welcomeContainer").hide();
+                $("#loginNav").removeClass("hidden");      // 顯示登入
+                $("#logoutButton").addClass("hidden");     // 隱藏登出
+                $("#degreeOption, #resultsOption, #historyOption").addClass("hidden");
+            }
+        }
+
+        function checkLoginStatus() {
+            let isLoggedIn = sessionStorage.getItem("isLoggedIn");
+            let username = sessionStorage.getItem("username");
+            if (isLoggedIn === "true" && username) {
+                updateNavBar(username);
+            }
+        }
+    </script>
+
+</body>
+</html>

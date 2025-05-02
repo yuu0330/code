@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>病蟲監測歷史紀錄</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body data-page="degree_history">
+    <div class="navbar">
+        <a href="/one">
+            <img src="/static/標題圖.png" alt="Logo" class="logo">
+        </a>   
+        <nav>
+            <a href="/one">首頁</a>
+            <div class="dropdown">
+                <button class="dropbtn">害蟲模組 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/degree">害蟲監測</a>
+                    <a href="/degree_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">場域資料 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/results">環境監測</a>
+                    <a href="/results_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">ICM管理 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/material">資材紀錄</a>
+                    <a href="/material_history">歷史資料</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                    <a href="/daily_trend">每日變化</a>
+            </div>
+            <a href="/video">場域串流</a>
+            <a href="/">登出</a>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div class="search-container">
+            <h2 class="page-title">害蟲監測歷史資料</h2>
+            <div class="date-inputs">
+                <h3>選擇日期範圍</h3>
+                <label for="startDate">開始日期:</label>
+                <input type="date" id="startDate">
+                
+                <label for="endDate">結束日期:</label>
+                <input type="date" id="endDate">
+    
+                <button onclick="fetchData()">顯示圖表</button>
+            </div>
+        </div>
+    
+        <div class="chart-container" style="height: 600px; width: 90%;">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+    
+    <script>
+        // 確保下拉選單可以展開
+        $(document).ready(function () {
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+
+        function fetchData() {
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+
+            if (!startDate || !endDate) {
+                alert("請填寫完整的日期範圍");
+                return;
+            }
+
+            fetch(`/fetch_degree_history?startDate=${startDate}&endDate=${endDate}`)
+                .then(response => response.json())
+                .then(data => renderChart(data))
+                .catch(error => console.error("Error fetching data:", error));
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById("myChart").getContext("2d");
+
+            if (window.myChart instanceof Chart) {
+                window.myChart.destroy();
+            }
+
+            window.myChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: "病蟲數量",
+                            data: data.amount,
+                            borderColor: "#3e95cd",
+                            borderWidth: 2.5,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: "振翅頻率 (Hz)",
+                            data: data.wingbeatFrequency,
+                            borderColor: "#FFA500",
+                            borderWidth: 2.5,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time', // 把X軸設成時間型態
+                            time: {
+                                unit: 'day', // 每一個標籤以「天」為單位，可以根據資料自動調整
+                                tooltipFormat: 'yyyy/MM/dd', // 提示框格式
+                                displayFormats: {
+                                    day: 'MM/dd' // X軸顯示成 月/日
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: "日期時間",
+                                font: { size: 16 }
+                            },
+                            ticks: {
+                                autoSkip: true, // 自動略過太擠的標籤
+                                maxTicksLimit: 10, // 最多顯示10個標籤
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: "數值",
+                                font: { size: 16 }
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+
+                }
+            });
+        }
+    </script>
+</body>
+</html>

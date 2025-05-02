@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>總覽</title>
+    <link rel="stylesheet" href="/static/material.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+</head>
+<body data-page="video">
+    <div class="navbar">
+        <a href="/one">
+            <img src="/static/標題圖.png" alt="Logo" class="logo">
+        </a>   
+        <nav>
+            <a href="/one">首頁</a>
+            <div class="dropdown">
+                <button class="dropbtn">害蟲模組 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/degree">害蟲監測</a>
+                    <a href="/degree_history">歷史資料</a>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="dropbtn">場域資料 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/results">環境監測</a>
+                    <a href="/results_history">歷史資料</a>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="dropbtn">ICM管理 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/material">資材紀錄</a>
+                    <a href="/material_history">歷史資料</a>
+                </div>
+            </div>
+            <a href="/daily_trend">每日變化</a>
+            <a href="/video">場域串流</a>
+            <a href="/">登出</a>
+        </nav>
+    </div>
+    <div class="stream-container">
+        <h2>資訊總覽</h2>
+        <div class="gauge-row">
+            <div id="pestGauge" class="gauge-box"></div>
+            <div id="envTempGauge" class="gauge-box"></div>
+            <div id="envHumdGauge" class="gauge-box"></div>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function () {
+            // 取得今天日期
+            function getTodayDate() {
+                const today = new Date();
+                return today.toISOString().split("T")[0];
+            }
+        
+            // 呼叫 API 取得害蟲數量
+            function fetchTodayPestCount() {
+                const today = getTodayDate();
+                $.get(`/fetch_pest_history?startDate=${today}&endDate=${today}`, function (data) {
+                    const total = data.reduce((sum, d) => sum + d.pest_count, 0);
+                    let color = "#32CD32", levelText = "安全等級（16 隻以下）";
+                    if (total > 256) { color = "#FF4500"; levelText = "嚴重爆發（256 隻以上）"; }
+                    else if (total > 64) { color = "#FFD700"; levelText = "需加強管理（64–256 隻）"; }
+                    else if (total > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
+        
+                    drawUnifiedGauge("pestGauge", total, 
+                        `害蟲偵測總數<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
+                        [0, 300],
+                        [
+                            { range: [0, 16], color: "#4CAF50" },
+                            { range: [16, 64], color: "#1E90FF" },
+                            { range: [64, 256], color: "#FFC107" },
+                            { range: [256, 300], color: "#F44336" }
+                        ],
+                        color
+                    );
+                });
+            }
+        
+            // 呼叫 API 取得環境溫濕度
+            function fetchWeatherData() {
+                $.get("/weather_proxy", function (data) {
+                    const temp = data.temperature;
+                    const humd = data.humidity;
+        
+                    drawUnifiedGauge("envTempGauge", temp, "環境溫度 (°C)", [0, 50], [
+                        { range: [0, 10], color: "#4CAF50" },
+                        { range: [10, 20], color: "#1E90FF" },
+                        { range: [20, 30], color: "#FFC107" },
+                        { range: [30, 50], color: "#F44336" }
+                    ], "#00008B");
+        
+                    drawUnifiedGauge("envHumdGauge", humd, "環境濕度 (%)", [0, 100], [
+                        { range: [0, 25], color: "#4CAF50" },
+                        { range: [25, 50], color: "#1E90FF" },
+                        { range: [50, 75], color: "#FFC107" },
+                        { range: [75, 100], color: "#F44336" }
+                    ], "#00008B");
+                }).fail(function () {
+                    drawUnifiedGauge("envTempGauge", 25, "環境溫度 (°C)", [0, 50], [], "#ccc");
+                    drawUnifiedGauge("envHumdGauge", 60, "環境濕度 (%)", [0, 100], [], "#ccc");
+                });
+            }
+        
+            // 統一繪圖函數
+            function drawUnifiedGauge(id, value, title, range, steps, color) {
+                const data = [{
+                    type: "indicator",
+                    mode: "gauge+number",
+                    value: value,
+                    number: {
+                        font: { size: 50, color: color || "#333" }
+                    },
+                    title: {
+                        text: `<b>${title}</b>`,
+                        font: { size: 20 },
+                        align: "center"
+                    },
+                    gauge: {
+                        axis: {
+                            range: range,
+                            tickwidth: 2,
+                            tickcolor: "#999",
+                            tickfont: { size: 20 }
+                        },
+                        bar: { color: "black", thickness: 0.3 },
+                        bgcolor: "white",
+                        borderwidth: 2,
+                        bordercolor: "#e0e0e0",
+                        steps: steps,
+                        threshold: {
+                            line: { color: "black", width: 5 },
+                            thickness: 0.5,
+                            value: value
+                        }
+                    }
+                }];
+        
+                const layout = {
+                    width: 400,
+                    height: 320,
+                    margin: { t: 100, b: 0 },
+                    paper_bgcolor: "#fff",
+                    font: { family: "Arial, sans-serif", color: "#333" }
+                };
+        
+                Plotly.newPlot(id, data, layout);
+            }
+        
+            // 初始化
+            fetchTodayPestCount();
+            fetchWeatherData();
+        
+            // 導覽展開功能
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+        </script>
+        
+</body>
+</html>

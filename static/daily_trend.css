@@ -1,0 +1,152 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* 確保導覽列樣式 */
+.navbar {
+    background-color: rgba(76, 175, 80, 0.9);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+}
+
+.navbar h1 {
+    color: #fff;
+    font-size: 1.8em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    width: 100%;
+}
+
+.navbar nav {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* 導覽列按鈕 */
+.navbar nav a {
+    color: white;
+    padding: 15px 20px;
+    text-decoration: none;
+    font-size: 1.3em;
+    display: block;
+    transition: 0.3s;
+}
+
+.navbar nav a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left: 5px solid white;
+}
+
+.logo {
+    width: 120px;       
+    margin: 0 auto 20px auto;
+    display: block;
+}
+
+/* ---- 修正下拉選單樣式 ---- */
+.dropdown {
+    width: 100%;
+    position: relative;
+}
+
+.dropbtn {
+    background-color: transparent;
+    color: white;
+    font-size: 1.3em;
+    padding: 15px 20px;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 使用 position: relative 讓下拉選單撐開，避免擋住歷史紀錄 */
+.dropdown-content {
+    display: none;
+    background-color: rgba(76, 175, 80, 0.95);
+    width: 100%;
+    flex-direction: column;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    position: relative;
+}
+
+.dropdown-content a {
+    padding: 12px 16px;
+    text-decoration: none;
+    color: white;
+    display: block;
+    transition: background 0.3s;
+}
+
+.dropdown-content a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 點擊展開下拉選單 */
+.dropdown.active .dropdown-content {
+    display: flex;
+}
+
+/* 讓歷史紀錄不被擋住 */
+.navbar a,
+.dropdown button {
+    position: relative;
+    z-index: 10;
+}
+
+/* === 每日變化圖表 === */
+.content {
+    margin-left: 250px;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f9f9f9;
+}
+
+/* 每個圖表區塊統一設定寬度與置中 */
+#temperatureChart, #pestChart {
+    min-height: 400px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 30px auto;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* 每日變化圖表區塊 */
+.daily-chart-wrapper {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto 40px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.daily-chart-wrapper h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 22px;
+}

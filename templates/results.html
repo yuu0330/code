@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>田間監測</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body data-page="results">
+
+    <!-- 導覽列 -->
+    <div class="navbar">
+        <a href="/one">
+            <img src="/static/標題圖.png" alt="Logo" class="logo">
+        </a>   
+        <nav>
+            <a href="/one">首頁</a>
+            <div class="dropdown">
+                <button class="dropbtn">害蟲模組 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/degree">害蟲監測</a>
+                    <a href="/degree_history">歷史資料</a>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="dropbtn">場域資料 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/results">環境監測</a>
+                    <a href="/results_history">歷史資料</a>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="dropbtn">ICM管理 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/material">資材紀錄</a>
+                    <a href="/material_history">歷史資料</a>
+                </div>
+            </div>
+            <a href="/daily_trend">每日變化</a>
+            <a href="/video">場域串流</a>
+            <a href="/">登出</a>
+        </nav>
+    </div>
+    <div class="content">
+        <h2 class="page-title">場域環境監測</h2>
+
+        <!-- 環境與土壤數據：上排4個，下排4個 -->
+        <div class="gauge-container">
+            <div class="gauge-box" id="gaugeEnvTemp"></div>
+            <div class="gauge-box" id="gaugeEnvHumidity"></div>
+            <div class="gauge-box" id="gaugePressure"></div>
+            <div class="gauge-box" id="gaugeRain"></div>
+        </div>
+
+        <div class="gauge-container">
+            <div class="gauge-box" id="gaugeSoilTemp"></div>
+            <div class="gauge-box" id="gaugeSoilMoisture"></div>
+            <div class="gauge-box" id="gaugeSoilEC"></div>
+            <div class="gauge-box" id="gaugeIllumination"></div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchWeatherData() {
+            try {
+                let response = await fetch("/weather_proxy");
+                let data = await response.json();
+                console.log("[Debug] 抓到溫溼度資料：", data);
+
+                return { temperature: data.temperature, humidity: data.humidity };
+            } catch (error) {
+                console.error("氣象 API 錯誤:", error);
+                return { temperature: 25, humidity: 60 };
+            }
+        }
+
+        function createGauge(value, title, range, colors) {
+            return {
+                type: "indicator",
+                mode: "gauge+number",
+                value: value,
+                title: {
+                    text: `<span class="title-text">${title}</span>`,
+                    font: { size: 24 },
+                    y: 1.2
+                },
+                number: {
+                    font: { size: 40 },
+                    yanchor: "bottom",
+                    font: { size: 40, weight: "bold" }
+                },
+                gauge: {
+                    shape: "semi-circle",
+                    axis: { range: range, tickwidth: 1, tickcolor: "black", tickfont: { size: 12 } },
+                    bar: { color: "darkblue", thickness: 0.3 },
+                    steps: colors.map(c => ({ range: [c[0], c[1]], color: c[2] })),
+                    threshold: {
+                        line: { color: "darkblue", width: 5 },
+                        thickness: 0.8,
+                        value: value
+                    }
+                }
+            };
+        }
+
+        function generateFakeData() {
+            return {
+                pressure: (Math.random() * 20 + 980).toFixed(1),
+                rainfall: (Math.random() * 10).toFixed(2),
+                soilTemperature: (Math.random() * 20 + 10).toFixed(1),
+                soilMoisture: (Math.random() * 100).toFixed(1),
+                soilEC: (Math.random() * 3 + 0.5).toFixed(2),
+                illumination: Math.floor(Math.random() * (30000 - 5000) + 5000)
+            };
+        }
+
+        $(document).ready(function () {
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+
+        async function updateGauges() {
+            const weather = await fetchWeatherData();
+            const data = generateFakeData();
+
+            Plotly.newPlot('gaugeEnvTemp', [createGauge(weather.temperature, "環境溫度 (°C)", [0, 50], [
+                [0, 10, "#4CAF50"], [10, 20, "#00BCD4"], [20, 30, "#FFC107"], [30, 50, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugeEnvHumidity', [createGauge(weather.humidity, "環境濕度 (%)", [0, 100], [
+                [0, 25, "#4CAF50"], [25, 50, "#00BCD4"], [50, 75, "#FFC107"], [75, 100, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugePressure', [createGauge(data.pressure, "大氣壓力 (hPa)", [980, 1020], [
+                [980, 990, "#4CAF50"], [990, 1005, "#FFC107"], [1005, 1020, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugeRain', [createGauge(data.rainfall, "雨量 (mm)", [0, 10], [
+                [0, 2, "#4CAF50"], [2, 5, "#FFC107"], [5, 10, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugeSoilTemp', [createGauge(data.soilTemperature, "土壤溫度 (°C)", [0, 40], [
+                [0, 10, "#4CAF50"], [10, 20, "#00BCD4"], [20, 30, "#FFC107"], [30, 40, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugeSoilMoisture', [createGauge(data.soilMoisture, "土壤濕度 (%)", [0, 100], [
+                [0, 25, "#4CAF50"], [25, 50, "#00BCD4"], [50, 75, "#FFC107"], [75, 100, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugeSoilEC', [createGauge(data.soilEC, "土壤EC值 (mmhos/cm)", [0.5, 3.5], [
+                [0.5, 1.5, "#4CAF50"], [1.5, 2.5, "#FFC107"], [2.5, 3.5, "#F44336"]
+            ])]);
+
+            Plotly.newPlot('gaugeIllumination', [createGauge(data.illumination, "光照度 (lux)", [0, 30000], [
+                [0, 5000, "#4CAF50"], [5000, 15000, "#FFC107"], [15000, 30000, "#F44336"]
+            ])]);
+        }
+
+        updateGauges();
+        setInterval(updateGauges, 30000);
+    </script>
+</body>
+</html>

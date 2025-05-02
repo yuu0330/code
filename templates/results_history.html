@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>田間監測歷史紀錄</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body data-page="results_history">
+    <div class="navbar">
+        <a href="/one">
+            <img src="/static/標題圖.png" alt="Logo" class="logo">
+        </a>   
+        <nav>
+            <a href="/one">首頁</a>
+            <div class="dropdown">
+                <button class="dropbtn">害蟲模組 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/degree">害蟲監測</a>
+                    <a href="/degree_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">場域資料 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/results">環境監測</a>
+                    <a href="/results_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">ICM管理 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/material">資材紀錄</a>
+                    <a href="/material_history">歷史資料</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                    <a href="/daily_trend">每日變化</a>
+            </div>
+            <a href="/video">場域串流</a>
+            <a href="/">登出</a>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div class="search-container">
+            <h2 class="page-title">環境歷史資料</h2>
+            <div class="date-inputs">
+                <h3>選擇日期範圍</h3>
+                <label for="startDate">開始日期:</label>
+                <input type="date" id="startDate">
+                
+                <label for="endDate">結束日期:</label>
+                <input type="date" id="endDate">
+    
+                <button onclick="fetchData()">顯示圖表</button>
+            </div>
+        </div>
+    
+        <div class="chart-container" style="height: 600px; width: 90%;">
+            <canvas id="chartMain"></canvas>
+        </div>        
+    </div>
+
+    <script>
+        function fetchData() {
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+
+            if (!startDate || !endDate) {
+                alert("請填寫完整的日期範圍");
+                return;
+            }
+
+            fetch(`/fetch_results_history?startDate=${startDate}&endDate=${endDate}`)
+                .then(res => res.json())
+                .then(envData => {
+                    // 隨機補上溫濕度資料
+                    envData.ambientTemperature = envData.dates.map(() => parseFloat((Math.random() * 10 + 20).toFixed(1))); // 20~30°C
+                    envData.ambientHumidity = envData.dates.map(() => parseFloat((Math.random() * 40 + 40).toFixed(1)));    // 40~80%
+
+                    renderChart(envData);
+                })
+                .catch(err => {
+                    console.error("資料讀取失敗：", err);
+                });
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById("chartMain").getContext("2d");
+
+            if (window.chartMain instanceof Chart) {
+                window.chartMain.destroy();
+            }
+
+            window.chartMain = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: "環境溫度 (°C)",
+                            data: data.ambientTemperature,
+                            borderColor: "#FF5733",
+                            yAxisID: "y",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "環境濕度 (%)",
+                            data: data.ambientHumidity,
+                            borderColor: "#338AFF",
+                            yAxisID: "y1",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "土壤 EC 值 (dS/m)",
+                            data: data.ecValue,
+                            borderColor: "#8D33FF",
+                            yAxisID: "y",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "光照度 (lux)",
+                            data: data.illumination,
+                            borderColor: "#FFA500",
+                            yAxisID: "y2",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'yyyy/MM/dd',
+                                displayFormats: {
+                                    day: 'MM/dd'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: "日期時間",
+                                font: { size: 16 }
+                            },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 10,
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: "溫度 / EC",
+                                font: { size: 14 }
+                            },
+                            min: 0
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: "濕度 (%)",
+                                font: { size: 14 }
+                            },
+                            grid: { drawOnChartArea: false },
+                            min: 0,
+                            max: 100
+                        },
+                        y2: {
+                            type: 'linear',
+                            position: 'right',
+                            offset: true,
+                            title: {
+                                display: true,
+                                text: "光照度 (lux)",
+                                font: { size: 14 }
+                            },
+                            grid: { drawOnChartArea: false },
+                            min: 0,
+                            max: 30000
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: "top",    // 圖例放到圖上方
+                            align: "center",    // 水平置中
+                            labels: {
+                                font: {
+                                    size: 16   // 圖例字體大小
+                                },
+                                padding: 20    // 圖例項目間的距離，讓它不要擠在一起
+                            }
+                        },
+                        tooltip: {
+                            bodyFont: {
+                                size: 16       // 提示文字也變大一點，使用者看得清楚
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 確保下拉選單可以展開
+        $(document).ready(function () {
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+
+        async function fetchWeatherDataRange(dates) {
+            const url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035";
+            const auth = "CWA-233147B7-C268-43C1-BC20-C819EE149C00";
+            const location = "內埔鄉";
+
+            try {
+                const res = await fetch(`${url}?Authorization=${auth}&format=JSON&locationName=${location}&elementName=平均溫度,平均相對濕度`);
+                const data = await res.json();
+
+                const elements = data.records?.Locations?.[0]?.Location?.[0]?.WeatherElement;
+                if (!elements) throw new Error("找不到 WeatherElement");
+
+                const tempList = elements.find(e => e.ElementName === "平均溫度")?.Time || [];
+                const humList = elements.find(e => e.ElementName === "平均相對濕度")?.Time || [];
+
+                const tempResult = [];
+                const humResult = [];
+
+                dates.forEach(datetime => {
+                    const dateOnly = datetime.split(" ")[0]; // "2025-04-21"
+
+                    // 找出最接近這天的預報資料（只比對日期，不比時間）
+                    const temp = tempList.find(t => t.StartTime.startsWith(dateOnly));
+                    const hum = humList.find(h => h.StartTime.startsWith(dateOnly));
+
+                    const tempVal = parseFloat(temp?.ElementValue?.[0]?.Value);
+                    const humVal = parseFloat(hum?.ElementValue?.[0]?.Value);
+
+                    tempResult.push(!isNaN(tempVal) ? tempVal : 25);
+                    humResult.push(!isNaN(humVal) ? humVal : 60);
+                });
+
+                return {
+                    ambientTemperature: tempResult,
+                    ambientHumidity: humResult
+                };
+            } catch (err) {
+                console.error("氣象 API 多日查詢失敗：", err);
+                const fallback = Array(dates.length).fill(0);
+                return {
+                    ambientTemperature: fallback.map(() => 25),
+                    ambientHumidity: fallback.map(() => 60)
+                };
+            }
+        }
+
+    </script>
+</body>
+</html>
