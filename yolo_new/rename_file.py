@@ -1,6 +1,6 @@
 import os
 
-PATH="C:/Users/Win11/Desktop/yolo_2/test"
+PATH="CC:\Users\Win11\Desktop\web\code-1\yolo_new\img"
 
 def deal(path):
     file_names = os.listdir(path)
