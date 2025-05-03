@@ -3,7 +3,7 @@ import os
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
 
-PATH='./test'
+PATH = r"C:/Users/Win11/Desktop/web/code-1/yolo_new/reClip"
 
 imgs = glob.glob(PATH+'/*')
 os.makedirs('reSize', exist_ok=True)
