@@ -17,7 +17,7 @@ GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbx9RzI9Fbs7Zgva4Oxsn
 model = YOLO("best.pt")
 
 # 設定圖片路徑
-INPUT_IMAGE_PATH = "static/斜紋夜蛾.jpg"
+INPUT_IMAGE_PATH = "static/237.jpg"
 OUTPUT_IMAGE_PATH = "static/detected_pests.jpg"
 
 # ====================== 網頁路由 ======================
