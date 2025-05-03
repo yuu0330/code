@@ -2,7 +2,7 @@ import glob
 import os
 from PIL import Image
 
-PATH='C:/Users/Win11/Desktop/yolo_2/test'
+PATH = r"C:/Users/Win11/Desktop/web/code-1/yolo_new/img"
 
 def image_clip(name,filename, width_scale, height_scale):
     image = Image.open(filename)

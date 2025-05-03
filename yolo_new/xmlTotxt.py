@@ -6,7 +6,7 @@ import os
 from os import listdir, getcwd
 from os.path import join
 
-classes = ["Spodoptera litura"]  # 類别
+classes = ["bd","sl"]  # 類别
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,10 +24,10 @@ def convert(size, box):
     h = h * dh
     return (x, y, w, h)
 
-xml_path = os.path.join(CURRENT_DIR, 'C:/Users/Win11/Desktop/yolo_2/xml')
+xml_path = os.path.join(CURRENT_DIR, '0426to29_increaseLabel')
 def convert_annotation(image_id):
-    in_file = open('C:/Users/Win11/Desktop/yolo_2/xml/%s.xml' % (image_id), encoding='UTF-8')
-    out_file = open('C:/Users/Win11/Desktop/yolo_2/txt/%s.txt' % (image_id), 'w')  # 生成txt格式文件
+    in_file = open('0426to29_increaseLabel/%s.xml' % (image_id), encoding='UTF-8')
+    out_file = open('0426to29_txt/%s.txt' % (image_id), 'w')  # 生成txt格式文件
     tree = ET.parse(in_file)
     root = tree.getroot()
     size = root.find('size')

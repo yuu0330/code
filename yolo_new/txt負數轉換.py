@@ -1,5 +1,5 @@
 import os
-PATH = r'C:/Users/Win11/Desktop/yolo_2/txt'
+PATH = r'0426to29_txt'
 
 def process_files_in_folder(folder_path):
     # 获取文件夹中的所有文件
@@ -32,4 +32,3 @@ def process_files_in_folder(folder_path):
             with open(file_path, 'w') as file:
                 file.write('\n'.join(processed_lines))
 process_files_in_folder(PATH)
-print("處理完成") 

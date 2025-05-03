@@ -3,11 +3,11 @@ import numpy as np
 import cv2
 
 # 修改输入图片文件夹
-img_folder = "C:/Users/Win11/Desktop/yolo_2/images1"
+img_folder = "0426to29_increaseImg"
 img_list = os.listdir(img_folder)
 img_list.sort()
 # 修改输入标签文件夹
-label_folder = "C:/Users/Win11/Desktop/yolo_2/txt"
+label_folder = "0426to29_txt"
 label_list = os.listdir(label_folder)
 label_list.sort()
 # 输出图片文件夹位置

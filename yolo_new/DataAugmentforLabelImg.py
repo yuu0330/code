@@ -501,7 +501,7 @@ class ToolHelper():
 
 if __name__ == '__main__':
 
-    need_aug_num = 10  # 每张图片需要增强的次数
+    need_aug_num = 9  # 每张图片需要增强的次数
 
     is_endwidth_dot = True  # 文件是否以.jpg或者png结尾
 
@@ -511,10 +511,10 @@ if __name__ == '__main__':
 
     # 获取相关参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source_img_path', type=str, default='C:/Users/Win11/Desktop/yolo_2/reClip')
-    parser.add_argument('--source_xml_path', type=str, default='C:/Users/Win11/Desktop/yolo_2/path2')
-    parser.add_argument('--save_img_path', type=str, default='C:/Users/Win11/Desktop/yolo_2/images1')
-    parser.add_argument('--save_xml_path', type=str, default='C:/Users/Win11/Desktop/yolo_2/xml')
+    parser.add_argument('--source_img_path', type=str, default='0426to29_originImg')#原始圖檔
+    parser.add_argument('--source_xml_path', type=str, default='0426to29_originLabel')#原始標記檔(XML)
+    parser.add_argument('--save_img_path', type=str, default='0426to29_increaseImg')#增強後圖檔
+    parser.add_argument('--save_xml_path', type=str, default='0426to29_increaseLabel')#增強後標記檔(XML)
     args = parser.parse_args()
     source_img_path = args.source_img_path  # 图片原始位置
     source_xml_path = args.source_xml_path  # xml的原始位置
