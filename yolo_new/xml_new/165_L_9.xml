@@ -1,0 +1,86 @@
+<annotation>
+  <folder>C:/Users/Win11/Desktop/web/code-1/yolo_new/img</folder>
+  <filename>165_L_9.jpg</filename>
+  <path>C:/Users/Win11/Desktop/web/code-1/yolo_new/img\165_L_9.jpg</path>
+  <source>
+    <database>Unknown</database>
+  </source>
+  <size>
+    <width>991</width>
+    <height>991</height>
+    <depth>3</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>268</xmin>
+      <ymin>232</ymin>
+      <xmax>355</xmax>
+      <ymax>313</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>167</xmin>
+      <ymin>294</ymin>
+      <xmax>235</xmax>
+      <ymax>352</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>41</xmin>
+      <ymin>348</ymin>
+      <xmax>76</xmax>
+      <ymax>422</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>51</xmin>
+      <ymin>469</ymin>
+      <xmax>85</xmax>
+      <ymax>538</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>404</xmin>
+      <ymin>338</ymin>
+      <xmax>473</xmax>
+      <ymax>365</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>480</xmin>
+      <ymin>443</ymin>
+      <xmax>550</xmax>
+      <ymax>481</ymax>
+    </bndbox>
+  </object>
+</annotation>

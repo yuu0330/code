@@ -1,0 +1,86 @@
+<annotation>
+  <folder>C:/Users/Win11/Desktop/web/code-1/yolo_new/img</folder>
+  <filename>165_L_1.jpg</filename>
+  <path>C:/Users/Win11/Desktop/web/code-1/yolo_new/img\165_L_1.jpg</path>
+  <source>
+    <database>Unknown</database>
+  </source>
+  <size>
+    <width>1280</width>
+    <height>1280</height>
+    <depth>3</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>964</xmin>
+      <ymin>995</ymin>
+      <xmax>844</xmax>
+      <ymax>882</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>1099</xmin>
+      <ymin>895</ymin>
+      <xmax>1005</xmax>
+      <ymax>815</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>1267</xmin>
+      <ymin>804</ymin>
+      <xmax>1219</xmax>
+      <ymax>702</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>1239</xmin>
+      <ymin>636</ymin>
+      <xmax>1193</xmax>
+      <ymax>541</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>766</xmin>
+      <ymin>861</ymin>
+      <xmax>671</xmax>
+      <ymax>825</ymax>
+    </bndbox>
+  </object>
+  <object>
+    <name>Spodoptera litura</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>648</xmin>
+      <ymin>724</ymin>
+      <xmax>551</xmax>
+      <ymax>672</ymax>
+    </bndbox>
+  </object>
+</annotation>
