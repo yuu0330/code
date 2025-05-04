@@ -3,11 +3,11 @@ import random
 import shutil
 
 # 設定來源圖片和標記檔的資料夾路徑
-source_img_folder = 'C:/Users/Win11/Desktop/yolo_2/images1'
-source_label_folder = 'C:/Users/Win11/Desktop/yolo_2/txt'
+source_img_folder = 'C:/Users/Win11/Desktop/web/yolo_2/img'
+source_label_folder = 'C:/Users/Win11/Desktop/web/yolo_2/txt'
 
 # 設定存放分割後資料集的資料夾路徑
-dest_folder = 'C:/Users/Win11/Desktop/yolo_2/images'
+dest_folder = 'C:/Users/Win11/Desktop/web/yolo_2/path'
 
 # 建立 train, val, test 資料夾，每個資料夾內含 images 與 labels 子資料夾
 for subset in ['train', 'val', 'test']:

@@ -3,17 +3,17 @@ import numpy as np
 import cv2
 
 # 修改输入图片文件夹
-img_folder = "0426to29_increaseImg"
+img_folder = "C:/Users/Win11/Desktop/web/yolo_2/img"
 img_list = os.listdir(img_folder)
 img_list.sort()
 # 修改输入标签文件夹
-label_folder = "0426to29_txt"
+label_folder = "C:/Users/Win11/Desktop/web/yolo_2/txt"
 label_list = os.listdir(label_folder)
 label_list.sort()
 # 输出图片文件夹位置
 path = os.getcwd()
 
-output_folder = path + '/' + str("output")
+output_folder = "C:/Users/Win11/Desktop/web/yolo_2/output"
 if not os.path.exists(output_folder):
         os.mkdir(output_folder)
 
