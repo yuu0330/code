@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
     # 訓練模型
     model.train(
-        data='Data.yaml',       # 訓練資料的設定檔（data.yaml），定義 train/val 路徑與類別
+        data='C:/Users/Win11/Desktop/web/code-1/yolo_new/Data.yaml',
         epochs=100,              # 訓練總輪數（epoch 數越多訓練越久）
         imgsz=640,               # 輸入圖片尺寸（常見為 640，可根據模型與 GPU 調整）
         device=0,                # 使用哪張 GPU（0 表第 1 張，改成 "cpu" 則用 CPU 訓練）
@@ -23,10 +23,3 @@ if __name__ == '__main__':
         val=True                 # 每個 epoch 是否執行驗證（建議保持 True）
         # optimizer='SGD'        # ← 可選項。若穩定性重要可用 SGD，否則預設是 AdamW
     )
-
-metrics = model.val()  # 在 val set 上評估
-print(f"\n=== 驗證結果 ===")
-print(f"Precision      : {metrics.box.precision:.4f}")
-print(f"Recall         : {metrics.box.recall:.4f}")
-print(f"mAP@0.5        : {metrics.box.map50:.4f}")
-print(f"mAP@0.5:0.95   : {metrics.box.map:.4f}")
