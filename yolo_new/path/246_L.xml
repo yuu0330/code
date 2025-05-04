@@ -1,0 +1,38 @@
+<annotation>
+	<folder>reSize</folder>
+	<filename>246_L.jpg</filename>
+	<path>C:\Users\Win11\Desktop\web\code-1\yolo_new\reSize\246_L.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>1280</width>
+		<height>1280</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>631</xmin>
+			<ymin>521</ymin>
+			<xmax>717</xmax>
+			<ymax>597</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>Spodoptera litura</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>599</xmin>
+			<ymin>563</ymin>
+			<xmax>665</xmax>
+			<ymax>661</ymax>
+		</bndbox>
+	</object>
+</annotation>
