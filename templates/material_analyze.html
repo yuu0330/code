@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICM分析</title>
+    <link rel="stylesheet" href="/static/material.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body data-page="video">
+    <div class="navbar">
+        <a href="/one">
+            <img src="/static/標題圖.png" alt="Logo" class="logo">
+        </a>   
+        <nav>
+            <a href="/one">首頁</a>
+            <div class="dropdown">
+                <button class="dropbtn">害蟲模組 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/degree">害蟲監測</a>
+                    <a href="/degree_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">場域資料 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/results">環境監測</a>
+                    <a href="/results_history">歷史資料</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="dropbtn">ICM管理 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/material">資材紀錄</a>
+                    <a href="/material_analyze">ICM分析</a>
+                    <a href="/material_history">歷史資料</a>
+                </div>
+            </div>
+            <a href="/daily_trend">每日變化</a>
+            <a href="/video">場域串流</a>
+            <a href="/">登出</a>
+        </nav>
+    </div>
+    <div class="stream-container">
+        <h2>ICM分析</h2>
+        <div class="date-control">
+            <label for="queryDate">選擇日期：</label>
+            <input type="date" id="queryDate">
+            <button onclick="fetchPieData()">查詢</button>
+        </div>        
+    
+        <div class="chart-container">
+            <div class="chart-card">
+              <canvas id="chart-location"></canvas>
+            </div>
+            <div class="chart-card">
+              <canvas id="chart-crop"></canvas>
+            </div>
+            <div class="chart-card">
+              <canvas id="chart-material"></canvas>
+            </div>
+            <div class="chart-card">
+              <canvas id="chart-fertilizer"></canvas>
+            </div>
+          </div>          
+    </div>    
+    <script>
+        const charts = {}; // 儲存各圓餅圖 Chart 實例，避免重複繪製錯誤
+    
+        // 渲染圓餅圖（含銷毀前一張圖表）
+        function renderPieChart(ctxId, title, dataObj) {
+            const ctx = document.getElementById(ctxId).getContext('2d');
+
+            if (Chart.getChart(ctxId)) {
+                Chart.getChart(ctxId).destroy();
+            }
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(dataObj),
+                    datasets: [{
+                        data: Object.values(dataObj),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#9C27B0',
+                            '#FF9800', '#00ACC1', '#8D6E63', '#789262', '#BA68C8',
+                            '#F06292', '#9575CD', '#AED581', '#FFD54F', '#4DB6AC',
+                            '#7986CB', '#E57373', '#A1887F', '#FDD835', '#81D4FA'
+                        ],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 30 }
+                        },
+                        legend: {
+                            position: 'right', // ✅ 圖例改到右側，空間更自然
+                            labels: {
+                                boxWidth: 15,
+                                padding: 8,
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: 10
+                    }
+                }
+            });
+        }
+        
+        // 取得資料並渲染所有圓餅圖
+        function fetchPieData() {
+            const date = document.getElementById("queryDate").value;
+            if (!date) return alert("請選擇日期");
+    
+            fetch(`/icm_pie_data?date=${date}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        alert("發生錯誤：" + data.error);
+                        return;
+                    }
+                    renderPieChart('chart-location', '地點', data["地點"]);
+                    renderPieChart('chart-crop', '農作物', data["農作物"]);
+                    renderPieChart('chart-material', '資材', data["資材"]);
+                    renderPieChart('chart-fertilizer', '肥料或益生菌', data["肥料益生菌"]);
+                })
+                .catch(err => {
+                    alert("資料載入失敗：" + err);
+                });
+        }
+    
+        // 預設載入今天的資料
+        $(document).ready(() => {
+            const today = new Date().toISOString().split('T')[0];
+            $('#queryDate').val(today);
+            fetchPieData();
+    
+            // 導覽列下拉控制
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+    
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+    </script>
+     
+</body>
+</html>

@@ -46,6 +46,10 @@ def material_history():
 def results_history():
     return render_template("results_history.html")
 
+@app.route("/material_analyze")
+def material_analyze():
+    return render_template("material_analyze.html")
+
 # 這裡只保留一個 degree_history
 @app.route("/degree_history")
 def degree_history():
@@ -144,6 +148,71 @@ def get_materials():
     except Exception as e:
         print("[錯誤]", str(e))
         return jsonify({"error": f"資料讀取失敗：{str(e)}"}), 500
+
+# ====================== ICM分析 ======================
+# ✅ 將這段加入 Flask app 中
+@app.route("/icm_pie_data")
+def icm_pie_data():
+    try:
+        query_date = request.args.get("date")
+        if not query_date:
+            return jsonify({"error": "缺少日期參數"}), 400
+
+        # 向 Google Apps Script 請求資料
+        response = requests.get(GOOGLE_SHEET_API, params={"action": "get_materials"})
+        raw_data = response.json()
+
+        # 過濾指定日期資料（時間格式為 yyyy-mm-dd hh:mm）
+        data = [row for row in raw_data if row.get("time", "").startswith(query_date)]
+
+        if not data:
+            # 若無資料也要回傳空結構（0 值）避免前端錯誤
+            return jsonify({
+                "地點": {"無紀錄": 1},
+                "農作物": {"無紀錄": 1},
+                "資材": {"無紀錄": 1},
+                "肥料益生菌": {"無紀錄": 1}
+            })
+
+        # 定義下拉選單中顯示的值（用於分類）
+        known_places = ["A", "B", "C", "D", "右區", "黃金果區F1", "綜合果樹區F2",
+                         "G1溫室1", "G2溫室2", "G3溫室3", "育苗區", "資材室或工具室", "加工室(廚房或教室)"]
+        known_crops = ["茄子", "秋葵", "玉米筍", "玉米", "冬瓜", "南瓜", "莧瓜", "絲瓜",
+                        "紅豆", "青花筍", "高麗菜", "青椒", "辣椒", "番茄", "洋蔥", "蔥", "番薯葉",
+                        "高莖類", "白菜類", "黃金果", "芒果", "檸檬", "百香果", "火龍果", "畜禽製作物", "草莓"]
+        known_materials = ["無施用", "葵無露", "亞磷酸鉀", "木醋液", "苦楝油", "苦茶粕", "硫磺合劑", "波爾多液", "蘇力菌"]
+        known_fertilizers = ["無施用", "市售有機堆肥", "發酵過雞糞或鴨糞", "自製液肥(農業廢棄物)", "光合菌", "治黃葉(噴粉芽孢桿菌)", "健達力蘇力菌", "菌根菌"]
+
+        def count_items(data, field, known_list):
+            counter = {item: 0 for item in known_list}
+            counter["其他"] = 0
+
+            for row in data:
+                val = row.get(field, "")
+                items = [i.strip() for i in val.split(",") if i.strip()]
+                for item in items:
+                    if item in known_list:
+                        counter[item] += 1
+                    else:
+                        counter["其他"] += 1
+
+            # 避免全部都是 0，讓圖表能畫出來
+            total = sum(counter.values())
+            if total == 0:
+                counter["無資料"] = 1
+
+            return counter
+
+        return jsonify({
+            "地點": count_items(data, "place", known_places),
+            "農作物": count_items(data, "crops", known_crops),
+            "資材": count_items(data, "material", known_materials),
+            "肥料益生菌": count_items(data, "fertilizer", known_fertilizers),
+        })
+
+    except Exception as e:
+        print("[錯誤] ICM pie 分析錯誤：", e)
+        return jsonify({"error": str(e)}), 500
 
 # ====================== 病蟲監測 API ======================
 
