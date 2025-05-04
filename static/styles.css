@@ -165,31 +165,35 @@ body[data-page="results"] .gauge-container:nth-child(2) {
 body[data-page="degree"] .gauge-container {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     width: 100%;
-    gap: 50px;
-    margin-top: 50px;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 40px;
 }
 
 /* 讓 degree 的 3 個圖表大小一致 */
-body[data-page="degree"] .gauge-box,
-body[data-page="degree"] .wave-box,
-body[data-page="degree"] .yolo-box {
-    width: 450px; 
-    height: 380px;
-}
-
-/* 儀表圖 */
-.gauge-box {
-    width: 350px;
-    height: 300px;
+body[data-page="degree"] .chart-box {
+    width: 420px;
+    height: 360px;
     background: white;
     border-radius: 15px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-top: 15px;
+    align-items: center;    /* 垂直置中 */
+    justify-content: center; /* 水平置中 */
+    padding: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* 確保圖片不超出邊框並居中 */
+.chart-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    margin: auto;
 }
 
 /* 儀表圖內部數字與標題 */
@@ -211,33 +215,9 @@ body[data-page="degree"] .yolo-box {
     font-weight: bold;
 }
 
-/* 針對 degree.html 的額外圖表（波形 & YOLO） */
-body[data-page="degree"] .wave-box {
-    width: 450px;
-    height: 380px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-body[data-page="degree"] .yolo-box {
-    width: 400px;
-    height: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    background-color: white;
-    padding: 10px;
-}
-
 body[data-page="degree"] .yolo-box img {
-    width: 100%;
-    height: auto;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
     border-radius: 10px;
 }

@@ -155,14 +155,44 @@ def pest_data():
 
 @app.route("/detect_pests")
 def detect_pests():
-    """讀取圖片並標記病蟲位置"""
+    """讀取圖片並手動繪製 ID 編號與總數"""
     img = cv2.imread(INPUT_IMAGE_PATH)
 
     results = model(img)
-    for r in results:
-        img = r.plot()  # 繪製 YOLO 偵測結果
+    count = 0
 
-    cv2.imwrite(OUTPUT_IMAGE_PATH, img)  # 儲存處理後的圖片
+    for r in results:
+        boxes = r.boxes
+        for i, box in enumerate(boxes):
+            count += 1
+            x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
+            label = f"ID: {i+1}"
+
+            # 畫框
+            cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
+            # 畫 ID 字（加大字體與粗細）
+            cv2.putText(
+                img,
+                label,
+                (x1, y1 - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.8,              # 字體加大
+                (0, 255, 0),
+                3                 # 粗細加粗
+            )
+
+    # 畫總數（字體更大一點）
+    cv2.putText(
+        img,
+        f"count: {count}",
+        (20, 50),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        2.5,               # 更大字體
+        (0, 0, 255),
+        6                  # 更粗邊框
+    )
+
+    cv2.imwrite(OUTPUT_IMAGE_PATH, img)
     return send_file(OUTPUT_IMAGE_PATH, mimetype="image/jpeg")
 
 # ====================== 使用者管理 API ======================

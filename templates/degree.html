@@ -69,94 +69,120 @@
 
         <!-- 病蟲害監測視覺化圖表 -->
         <div class="gauge-container">
-            <div class="gauge-box" id="pestCountGauge"></div>
-            <div class="wave-box" id="wingbeatWaveform"></div>
-            <div class="yolo-box">
+            <div class="chart-box" id="pestCountGauge"></div>
+            <div class="chart-box" id="wingbeatWaveform"></div>
+            <div class="chart-box">
                 <img id="yoloStream" src="/detect_pests">
             </div>
         </div>
     </div>
 
     <script>
+        // 統一儀表圖繪製函數
+        function drawUnifiedGauge(id, value, title, range, steps, color) {
+            const data = [{
+                type: "indicator",
+                mode: "gauge+number",
+                value: value,
+                number: {
+                    font: { size: 50, color: color || "#333" }
+                },
+                title: {
+                    text: `<b>${title}</b>`,
+                    font: { size: 20 },
+                    align: "center"
+                },
+                gauge: {
+                    axis: {
+                        range: range,
+                        tickwidth: 2,
+                        tickcolor: "#999",
+                        tickfont: { size: 20 }
+                    },
+                    bar: { color: "black", thickness: 0.3 },
+                    bgcolor: "white",
+                    borderwidth: 2,
+                    bordercolor: "#e0e0e0",
+                    steps: steps,
+                    threshold: {
+                        line: { color: "black", width: 5 },
+                        thickness: 0.5,
+                        value: value
+                    }
+                }
+            }];
+    
+            const layout = {
+                width: 400,
+                height: 320,
+                margin: { t: 40, b: 40, l: 20, r: 20 },
+                paper_bgcolor: "#fff",
+                font: { family: "Arial, sans-serif", color: "#333" }
+            };
+            
+            Plotly.newPlot(id, data, layout);
+        }
+    
         // 取得今日日期（YYYY-MM-DD 格式）
         function getTodayDate() {
             let today = new Date();
             return today.toISOString().split("T")[0];
         }
-
+    
         // 查詢害蟲總數（根據日期）
         function fetchPestData(useToday = false) {
             let startDate = document.getElementById("startDate").value;
             let endDate = document.getElementById("endDate").value;
-
+    
             if (useToday || (!startDate && !endDate)) {
                 startDate = endDate = getTodayDate();
             }
-
+    
             $.get(`/fetch_pest_history?startDate=${startDate}&endDate=${endDate}`, function(data) {
                 let totalPests = data.reduce((sum, record) => sum + record.pest_count, 0);
                 $("#totalPests").text(totalPests);
-
-                let pestCountGaugeData = [{
-                    type: "indicator",
-                    mode: "gauge+number",
-                    value: totalPests,
-                    title: { text: "病蟲數量", font: { size: 20 } },
-                    gauge: {
-                        axis: { range: [0, 500], tickwidth: 1, tickcolor: "darkblue" },
-                        bar: { color: "darkblue" },
-                        steps: [
-                            { range: [0, 100], color: "#32CD32" },
-                            { range: [100, 200], color: "#00BFFF" },
-                            { range: [200, 300], color: "#FFA500" },
-                            { range: [300, 400], color: "#FF4500" },
-                            { range: [400, 500], color: "#8B0000" }
-                        ]
-                    }
-                }];
-
-                Plotly.newPlot('pestCountGauge', pestCountGaugeData);
+    
+                let levelText = "安全等級（16 隻以下）";
+                let color = "#4CAF50";
+                if (totalPests > 256) { color = "#F44336"; levelText = "嚴重爆發（256 隻以上）"; }
+                else if (totalPests > 64) { color = "#FFC107"; levelText = "需加強管理（64–256 隻）"; }
+                else if (totalPests > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
+    
+                drawUnifiedGauge("pestCountGauge", totalPests,
+                    `病蟲害數量<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
+                    [0, 300],
+                    [
+                        { range: [0, 16], color: "#4CAF50" },
+                        { range: [16, 64], color: "#1E90FF" },
+                        { range: [64, 256], color: "#FFC107" },
+                        { range: [256, 300], color: "#F44336" }
+                    ],
+                    color
+                );
             });
         }
-
+    
         // 清除按鈕 - 只清除日期，但害蟲總數量仍顯示今日數據
         function clearDate() {
             $("#startDate").val('');
             $("#endDate").val('');
             fetchPestData(true); // 重新載入今日害蟲數量
         }
-
-        // 預設載入今日害蟲數量（但日期欄位不填）
-        $(document).ready(function () {
-            fetchPestData(true);
-        });
-
-        // 確保下拉選單可以展開
-        $(document).ready(function () {
-            $(".dropbtn").click(function () {
-                $(".dropdown-content").not($(this).next()).slideUp(200);
-                $(this).next(".dropdown-content").slideToggle(200);
-            });
-
-            $(document).click(function (event) {
-                if (!$(event.target).closest(".dropdown").length) {
-                    $(".dropdown-content").slideUp(200);
-                }
-            });
-        });
+    
+        // 動態生成振翅波形圖
         function updateWingbeatWaveform() {
-            const frequency = Math.random() * 100 + 20;  // 產生 20Hz - 120Hz 之間的變化
+            const frequency = Math.random() * 100 + 20;
             const sampleRate = 1000;
             const duration = 0.02;
             const time = [];
             const waveform = [];
-
+    
             for (let i = 0; i < sampleRate * duration; i++) {
                 let t = i / sampleRate;
                 time.push(t);
                 waveform.push(Math.sin(2 * Math.PI * frequency * t));
             }
-
+    
             const trace = {
                 x: time,
                 y: waveform,
@@ -164,32 +190,45 @@
                 mode: 'lines',
                 line: { color: 'blue' }
             };
-
+    
             const layout = {
-                title: `振翅波形 (${Math.round(frequency)}Hz)`, // 顯示動態變化
+                title: `振翅波形 (${Math.round(frequency)}Hz)`,
                 width: 400,
                 height: 350,
                 xaxis: { title: "Time [s]" },
                 yaxis: { title: "Amplitude" },
                 showlegend: false
             };
-
+    
             Plotly.newPlot('wingbeatWaveform', [trace], layout);
         }
-
-        // 每 5 秒更新一次波形圖
-        setInterval(updateWingbeatWaveform, 5000);
-
+    
+        // 初始化與週期執行
+        $(document).ready(function () {
+            fetchPestData(true);
+            updateWingbeatWaveform();
+            setInterval(updateWingbeatWaveform, 5000);
+            setInterval(fetchPestData, 30000);
+    
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+    
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+    
+        // 登出功能
         function logout() {
             $.get("/logout", function() {
                 window.location.href = "/";
             });
         }
-
-        fetchPestData();
-        updateWingbeatWaveform();
-        setInterval(fetchPestData, 30000);
     </script>
-
+    
 </body>
 </html>
