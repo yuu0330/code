@@ -511,10 +511,10 @@ if __name__ == '__main__':
 
     # 获取相关参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source_img_path', type=str, default='0426to29_originImg')#原始圖檔
-    parser.add_argument('--source_xml_path', type=str, default='0426to29_originLabel')#原始標記檔(XML)
-    parser.add_argument('--save_img_path', type=str, default='0426to29_increaseImg')#增強後圖檔
-    parser.add_argument('--save_xml_path', type=str, default='0426to29_increaseLabel')#增強後標記檔(XML)
+    parser.add_argument('--source_img_path', type=str, default='C:/Users/Win11/Desktop/web/code-1/yolo_new/reSize')#原始圖檔
+    parser.add_argument('--source_xml_path', type=str, default='C:/Users/Win11/Desktop/web/code-1/yolo_new/xml')#原始標記檔(XML)
+    parser.add_argument('--save_img_path', type=str, default='C:/Users/Win11/Desktop/web/code-1/yolo_new/img')#增強後圖檔
+    parser.add_argument('--save_xml_path', type=str, default='C:/Users/Win11/Desktop/web/code-1/yolo_new/xml_new')#增強後標記檔(XML)
     args = parser.parse_args()
     source_img_path = args.source_img_path  # 图片原始位置
     source_xml_path = args.source_xml_path  # xml的原始位置
