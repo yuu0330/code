@@ -1,5 +1,5 @@
 import os
-PATH = r'0426to29_txt'
+PATH = 'C:/Users/Win11/Desktop/web/code-1/yolo_new/txt'
 
 def process_files_in_folder(folder_path):
     # 获取文件夹中的所有文件
