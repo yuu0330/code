@@ -713,3 +713,19 @@ body[data-page="results"] .gauge-box {
     align-items: center;
     justify-content: center;
 }
+
+  
+body[data-page="results"] .gauge-box {
+    height: 260px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 保證 Plotly 圖表能撐滿外框 */
+.gauge-box .js-plotly-plot,
+.gauge-box .plot-container {
+    width: 100% !important;
+    height: 100% !important;
+}
