@@ -6,6 +6,8 @@ import random
 import os
 from datetime import datetime, timedelta
 from flask import Response
+import firebase_admin
+from firebase_admin import credentials, db
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -102,6 +104,42 @@ def weather_proxy():
             "humidity": 60.0
         })
 
+# 初始化 Firebase（只做一次）
+cred = credentials.Certificate("environmentdata-52a5e-firebase-adminsdk-ahqaa-8c0f279ed1.json")  # JSON 憑證檔
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://environmentdata-52a5e-default-rtdb.firebaseio.com/'
+})
+@app.route("/firebase_latest_data")
+def firebase_latest_data():
+    try:
+        ref = db.reference("environmentdata/test/data")
+        all_data = ref.get()
+
+        if not all_data:
+            return jsonify({"error": "Firebase 無資料"}), 404
+
+        # 取出最新一筆（照 timestamp 排序）
+        sorted_data = sorted(all_data.items(), key=lambda x: x[1].get("timestamp", ""))
+        latest_entry = sorted_data[-1][1]
+
+        return jsonify(latest_entry)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+@app.route("/latest_environment")
+def latest_environment():
+    try:
+        ref = db.reference('test/data')
+        data = ref.get()
+        if not data:
+            return jsonify({"error": "無資料"}), 404
+
+        latest_key = sorted(data.keys())[-1]
+        latest_data = data[latest_key]
+
+        return jsonify(latest_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 # ====================== 農藥使用紀錄 API ======================
 # ====================== 資材紀錄提交 API ======================
 @app.route("/submit_material", methods=["POST"])

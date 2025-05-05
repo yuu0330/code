@@ -662,29 +662,30 @@ body[data-page="daily_trend"] .daily-chart-wrapper {
 }
 
 /* -------- 針對 results.html 圖表每排 4 個設定 -------- */
+/* 每排最多 4 個，擴寬容器 */
 body[data-page="results"] .gauge-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 40px;
+    gap: 30px;
     width: 100%;
-    max-width: 1400px;
+    max-width: 1600px; 
 }
 
+/* 加寬與增高儀表框，避免文字擠出或被切 */
 body[data-page="results"] .gauge-box {
-    flex: 1 1 calc(25% - 40px);
-    min-width: 280px;
-    max-width: 320px;
-    min-height: 260px;
-    max-height: 280px;
+    flex: 0 0 360px;        
+    height: 320px;          
+    padding: 20px;          
     background: white;
     border-radius: 15px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    padding: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
+
 
 /* 響應式：平板每排2個 */
 @media (max-width: 1024px) {
@@ -708,24 +709,16 @@ body[data-page="results"] .gauge-box > div.plot-container {
     box-sizing: border-box;
 }
 
-body[data-page="results"] .gauge-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-  
-body[data-page="results"] .gauge-box {
-    height: 260px;
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* 保證 Plotly 圖表能撐滿外框 */
-.gauge-box .js-plotly-plot,
-.gauge-box .plot-container {
+plotly 本體強制塞進容器內
+body[data-page="results"] .gauge-box .js-plotly-plot,
+body[data-page="results"] .gauge-box .plot-container {
     width: 100% !important;
     height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    overflow: visible !important;  /* 關鍵：允許內容可見 */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
