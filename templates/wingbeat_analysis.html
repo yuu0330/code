@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>振翅頻率分析</title>
+    <link rel="stylesheet" href="/static/material.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body data-page="video">
+    <div class="navbar">
+        <a href="/one">
+            <img src="/static/標題圖.png" alt="Logo" class="logo">
+        </a>   
+        <nav>
+            <a href="/one">首頁</a>
+            <div class="dropdown">
+                <button class="dropbtn">害蟲模組 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/degree">害蟲監測</a>
+                    <a href="/wingbeat_analysis">振翅頻率分析</a>
+                    <a href="/degree_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">場域資料 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/results">環境監測</a>
+                    <a href="/results_history">歷史資料</a>
+                </div>
+            </div>
+    
+            <div class="dropdown">
+                <button class="dropbtn">ICM管理 ▼</button>
+                <div class="dropdown-content">
+                    <a href="/material">資材紀錄</a>
+                    <a href="/material_analyze">ICM分析</a>
+                    <a href="/material_history">歷史資料</a>
+                </div>
+            </div>
+            <a href="/daily_trend">每日變化</a>
+            <a href="/video">場域串流</a>
+            <a href="/">登出</a>
+        </nav>
+    </div>
+    <div class="stream-container">
+        <h2>振翅頻率分析</h2>       
+        <div>
+            <video id="video" width="480" controls autoplay onplay="startAnalysis()" onpause="startAnalysis()">
+                <source id="videoSource" src="/wingbeat/video/1" type="video/mp4">
+            </video>
+            <div><strong>每秒振翅次數：</strong><span id="wingbeatCount">0 次</span></div>
+        </div>
+        <div>
+            <h4>波形圖</h4>
+            <img id="waveform" src="/wingbeat/frame/waveform/1/0" width="480">
+            <h4>頻譜圖</h4>
+            <img id="spectrogram" src="/wingbeat/frame/spectrogram/1/0" width="480">
+        </div>    
+    </div>
+    <script>
+        let interval = null;
+        function startAnalysis() {
+            const video = document.getElementById("video");
+            const waveform = document.getElementById("waveform");
+            const spectrogram = document.getElementById("spectrogram");
+            const countBox = document.getElementById("wingbeatCount");
+            const videoId = document.getElementById("videoSelector").value;
+
+            // 啟動背景分析（非同步）
+            fetch(`/wingbeat/analyze/${videoId}`);
+
+            if (interval) clearInterval(interval);
+            interval = setInterval(() => {
+                if (!video.paused && !video.ended) {
+                    const sec = Math.floor(video.currentTime);
+                    const t = new Date().getTime();
+
+                    waveform.src = `/wingbeat/frame/waveform/${videoId}/${sec}?t=${t}`;
+                    spectrogram.src = `/wingbeat/frame/spectrogram/${videoId}/${sec}?t=${t}`;
+
+                    fetch(`/wingbeat/frame/count/${videoId}/${sec}`)
+                        .then(res => res.text())
+                        .then(cnt => {
+                            countBox.innerText = `${cnt} 次`;
+                        });
+                }
+            }, 500);
+        }
+
+        $(document).ready(function () {
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
+    </script>    
+</body>
+</html>

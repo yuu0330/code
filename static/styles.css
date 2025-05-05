@@ -722,3 +722,23 @@ body[data-page="results"] .gauge-box .plot-container {
     justify-content: center !important;
     align-items: center !important;
 }
+
+/* 包含振翅圖片與文字的容器 */
+.waveform-wrapper {
+    position: relative;
+}
+
+/* 放在圖片上方的文字 */
+.wingbeat-label {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    z-index: 10;
+}

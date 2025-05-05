@@ -3,11 +3,19 @@ import cv2
 from ultralytics import YOLO
 import requests
 import random
-import os
+import os, io, tempfile, numpy as np
 from datetime import datetime, timedelta
 from flask import Response
 import firebase_admin
 from firebase_admin import credentials, db
+from firebase_admin import firestore
+from datetime import datetime
+from dateutil.parser import parse
+import librosa, librosa.display
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from threading import Thread
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -56,6 +64,10 @@ def material_analyze():
 @app.route("/degree_history")
 def degree_history():
     return render_template("degree_history.html")
+
+@app.route("/wingbeat_analysis")
+def wingbeat_analysis():
+    return render_template("wingbeat_analysis.html")
 
 # ====================== 環境溫濕度 API ======================
 @app.route("/weather_proxy")
@@ -188,7 +200,6 @@ def get_materials():
         return jsonify({"error": f"資料讀取失敗：{str(e)}"}), 500
 
 # ====================== ICM分析 ======================
-# ✅ 將這段加入 Flask app 中
 @app.route("/icm_pie_data")
 def icm_pie_data():
     try:
@@ -253,13 +264,72 @@ def icm_pie_data():
         return jsonify({"error": str(e)}), 500
 
 # ====================== 病蟲監測 API ======================
+cred_ir = credentials.Certificate("data-12d9b-firebase-adminsdk-fbsvc-41f91c7e76.json")
+firestore_app = firebase_admin.initialize_app(cred_ir, name="ir_app")
+db_firestore = firestore.client(app=firestore_app)
+# 抓取紅外線數量
+@app.route("/ir_count_today")
+def ir_count_today():
+    try:
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        db_data = firestore.client(app=firestore_app)
+        total_count = 0
 
-@app.route("/pest_data")
-def pest_data():
-    """隨機產生病蟲數據"""
-    pest_count = random.randint(60, 110)
-    return jsonify({"pest_count": pest_count})
+        sub_collections = db_data.collection("ir_daily_count").document(today_str).collections()
+        for sub_col in sub_collections:
+            docs = sub_col.stream()
+            for doc in docs:
+                total_count += doc.to_dict().get("count", 0)
 
+        return jsonify({"count": total_count})
+    except Exception as e:
+        print("[錯誤] ir_count_today:", e)
+        return jsonify({"count": 0})
+
+#查詢日期範圍總數量
+@app.route("/ir_count_range")
+def ir_count_range():
+    start_str = request.args.get("startDate")
+    end_str = request.args.get("endDate")
+
+    if not start_str or not end_str:
+        return jsonify({"error": "請提供開始與結束日期"}), 400
+
+    try:
+        start_date = datetime.strptime(start_str, "%Y-%m-%d")
+        end_date = datetime.strptime(end_str, "%Y-%m-%d") + timedelta(days=1)
+    except ValueError:
+        return jsonify({"error": "日期格式錯誤"}), 400
+
+    try:
+        db_data = firestore.client(app=firestore_app)
+        docs = db_data.collection("Pi5_01_IR_sl").stream()
+    except Exception as e:
+        print("[錯誤] Firestore 連線失敗：", e)
+        return jsonify({"error": "Firestore 連線失敗"}), 500
+
+    count = 0
+    for doc in docs:
+        data = doc.to_dict()
+        ts_str = data.get("timestamp")
+        # 如果有 type 欄位需篩選，可啟用這行：
+        # if data.get("type") != "IR_sl":
+        #     continue
+
+        if not ts_str:
+            continue
+
+        try:
+            ts = parse(ts_str)
+        except Exception as e:
+            print(f"[解析錯誤] timestamp: {ts_str}，錯誤: {e}")
+            continue
+
+        if start_date <= ts < end_date:
+            count += 1
+
+    return jsonify({"count": count})
+#yolo標記框
 @app.route("/detect_pests")
 def detect_pests():
     """讀取圖片並手動繪製 ID 編號與總數"""
@@ -351,30 +421,98 @@ def logout():
     return redirect(url_for("home"))
 
 # ====================== 病蟲歷史資料 API ======================
+# @app.route("/fetch_degree_history")
+# def fetch_degree_history():
+#     """模擬病蟲數量與振翅頻率的歷史數據"""
+#     start_date_str = request.args.get("startDate")
+#     end_date_str = request.args.get("endDate")
+
+#     if not start_date_str or not end_date_str:
+#         return jsonify({"error": "請提供開始和結束日期"}), 400
+
+#     start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+#     end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+
+#     dates = []
+#     amount = []
+#     wingbeat_frequency = []
+
+#     current_date = start_date
+#     while current_date <= end_date:
+#         dates.append(current_date.strftime("%Y-%m-%d %H:%M"))
+#         amount.append(random.randint(50, 150))  # 隨機產生害蟲數量
+#         wingbeat_frequency.append(random.uniform(20, 120))  # 隨機產生振翅頻率 (20Hz - 120Hz)
+#         current_date += timedelta(hours=6)  # 每 6 小時取一筆數據
+
+#     return jsonify({"dates": dates, "amount": amount, "wingbeatFrequency": wingbeat_frequency})
+from dateutil.parser import parse  # 如果沒加，請放在最上面
 @app.route("/fetch_degree_history")
 def fetch_degree_history():
-    """模擬病蟲數量與振翅頻率的歷史數據"""
     start_date_str = request.args.get("startDate")
     end_date_str = request.args.get("endDate")
 
     if not start_date_str or not end_date_str:
         return jsonify({"error": "請提供開始和結束日期"}), 400
 
-    start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-    end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+    try:
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d") + timedelta(days=1)
+    except ValueError:
+        return jsonify({"error": "日期格式錯誤"}), 400
 
-    dates = []
-    amount = []
-    wingbeat_frequency = []
+    try:
+        db_data = firestore.client(app=firestore_app)
+        raw_docs = db_data.collection("Pi5_01_IR_sl").stream()
+    except Exception as e:
+        print(f"[錯誤] 連接 Firestore 失敗：{e}")
+        return jsonify({"error": "Firestore 連線失敗"}), 500
 
-    current_date = start_date
-    while current_date <= end_date:
-        dates.append(current_date.strftime("%Y-%m-%d %H:%M"))
-        amount.append(random.randint(50, 150))  # 隨機產生害蟲數量
-        wingbeat_frequency.append(random.uniform(20, 120))  # 隨機產生振翅頻率 (20Hz - 120Hz)
-        current_date += timedelta(hours=6)  # 每 6 小時取一筆數據
+    events = []
+    for doc in raw_docs:
+        data = doc.to_dict()
+        if data.get("type") != "IR_sl":
+            continue
 
-    return jsonify({"dates": dates, "amount": amount, "wingbeatFrequency": wingbeat_frequency})
+        ts_str = data.get("timestamp")
+        if not ts_str:
+            continue
+
+        try:
+            ts = parse(ts_str)
+        except Exception as e:
+            print(f"[解析錯誤] timestamp: {ts_str}，錯誤: {e}")
+            continue
+
+        if start_date <= ts < end_date:
+            events.append(ts)
+
+    # 每 2 小時分組
+    grouped = {}
+    for t in events:
+        interval = t.replace(minute=0, second=0, microsecond=0)
+        interval -= timedelta(hours=t.hour % 2)
+        key = interval.strftime("%Y-%m-%d %H:%M")
+        grouped[key] = grouped.get(key, 0) + 1
+
+    if not grouped:
+        # 如果查不到任何資料，預設提供一筆「0」資料避免前端錯誤
+        default_time = start_date.strftime("%Y-%m-%d 00:00")
+        return jsonify({
+            "dates": [default_time],
+            "amount": [0],
+            "wingbeatFrequency": [0.0]
+        })
+
+    sorted_keys = sorted(grouped.keys())
+    dates = sorted_keys
+    amount = [grouped[k] for k in sorted_keys]
+    wingbeat_freq = [round(random.uniform(20, 120), 2) for _ in sorted_keys]
+
+    return jsonify({
+        "dates": dates,
+        "amount": amount,
+        "wingbeatFrequency": wingbeat_freq
+    })
 
 # ====================== 場域歷史資料 API ======================
 def fetch_cwa_weather():
@@ -557,6 +695,107 @@ def video_feed():
 @app.route("/stream_redirect")
 def stream_redirect():
     return redirect("http://192.168.1.39:5000/api/stream")
+
+# ====================== 振翅頻率分析相關 ==================================
+waveform_frames_dict = {}
+spectrogram_frames_dict = {}
+wingbeat_counts_dict = {}
+
+SAMPLE_RATE = 16000
+FRAME_DURATION = 1  # 每段音訊長度（秒）
+
+def extract_audio_from_video(video_path, wav_path):
+    os.system(f'ffmpeg -y -i "{video_path}" -vn -ac 1 -ar {SAMPLE_RATE} -f wav "{wav_path}"')
+
+def analyze_wingbeat(video_id, video_path):
+    if video_id in waveform_frames_dict:
+        return
+
+    waveform_frames, spectrogram_frames, wingbeat_counts = [], [], []
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav:
+        wav_path = tmp_wav.name
+
+    extract_audio_from_video(video_path, wav_path)
+    audio, sr = librosa.load(wav_path, sr=SAMPLE_RATE)
+    samples_per_frame = int(SAMPLE_RATE * FRAME_DURATION)
+    total_frames = min(len(audio) // samples_per_frame, 5)  # 只分析前 5 秒
+
+    for i in range(total_frames):
+        chunk = audio[i * samples_per_frame:(i+1) * samples_per_frame]
+        # ... (保持畫圖邏輯不變)
+
+        # 波形圖
+        fig1, ax1 = plt.subplots(figsize=(4, 2))
+        librosa.display.waveshow(chunk, sr=sr, ax=ax1)
+        ax1.axis('off')
+        buf1 = io.BytesIO()
+        plt.savefig(buf1, format='jpeg', bbox_inches='tight', pad_inches=0)
+        plt.close(fig1)
+        buf1.seek(0)
+        waveform_frames.append(buf1.read())
+
+        # 頻譜圖
+        S = librosa.feature.melspectrogram(y=chunk, sr=sr)
+        S_dB = librosa.power_to_db(S, ref=np.max)
+        fig2, ax2 = plt.subplots(figsize=(4, 2))
+        librosa.display.specshow(S_dB, y_axis='mel', sr=sr, ax=ax2)
+        ax2.axis('off')
+        buf2 = io.BytesIO()
+        plt.savefig(buf2, format='jpeg', bbox_inches='tight', pad_inches=0)
+        plt.close(fig2)
+        buf2.seek(0)
+        spectrogram_frames.append(buf2.read())
+
+        wingbeat_counts.append(np.random.randint(0, 5))  # 模擬振翅次數
+
+    waveform_frames_dict[video_id] = waveform_frames
+    spectrogram_frames_dict[video_id] = spectrogram_frames
+    wingbeat_counts_dict[video_id] = wingbeat_counts
+    os.remove(wav_path)
+
+@app.route("/wingbeat_analysis")
+def wingbeat_analysis_page():
+    return render_template("wingbeat.html")
+
+@app.route("/wingbeat/video/<video_id>")
+def wingbeat_video(video_id):
+    video_path = f"static/wingbeat_videos/{video_id}.mp4"
+    if not os.path.exists(video_path):
+        return "影片不存在", 404
+    return send_file(video_path, mimetype="video/mp4")
+
+@app.route("/wingbeat/analyze/<video_id>")
+def wingbeat_trigger_analysis(video_id):
+    video_path = f"static/wingbeat_videos/{video_id}.mp4"
+    if not os.path.exists(video_path):
+        return "影片不存在", 404
+
+    if video_id not in waveform_frames_dict:
+        Thread(target=analyze_wingbeat, args=(video_id, video_path)).start()
+        return jsonify({"message": "背景分析已啟動"})
+    else:
+        return jsonify({"message": "已分析過，使用快取資料"})
+
+@app.route("/wingbeat/frame/waveform/<video_id>/<int:index>")
+def wingbeat_waveform(video_id, index):
+    frames = waveform_frames_dict.get(video_id, [])
+    if 0 <= index < len(frames):
+        return Response(frames[index], mimetype='image/jpeg')
+    return "無資料", 404
+
+@app.route("/wingbeat/frame/spectrogram/<video_id>/<int:index>")
+def wingbeat_spectrogram(video_id, index):
+    frames = spectrogram_frames_dict.get(video_id, [])
+    if 0 <= index < len(frames):
+        return Response(frames[index], mimetype='image/jpeg')
+    return "無資料", 404
+
+@app.route("/wingbeat/frame/count/<video_id>/<int:index>")
+def wingbeat_count(video_id, index):
+    counts = wingbeat_counts_dict.get(video_id, [])
+    if 0 <= index < len(counts):
+        return str(counts[index])
+    return "0", 404
 
 # ====================== 啟動 Flask 伺服器 ======================
 

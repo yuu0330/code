@@ -75,7 +75,13 @@
         <!-- 病蟲害監測視覺化圖表 -->
         <div class="gauge-container">
             <div class="chart-box" id="pestCountGauge"></div>
-            <div class="chart-box" id="wingbeatWaveform"></div>
+            <div class="chart-box waveform-wrapper">
+                <div class="wingbeat-label">
+                    每秒振翅次數：<span id="wingbeatCount">載入中</span>
+                    <br>推估數量：<span id="wingbeatEstimate">--</span> 隻
+                </div>
+                <img id="waveformImg" src="" width="400">
+            </div>            
             <div class="chart-box">
                 <img id="yoloStream" src="/detect_pests">
             </div>
@@ -184,45 +190,81 @@
             fetchPestData(true); // 重新載入今日害蟲數量
         }
     
-        // 動態生成振翅波形圖
-        function updateWingbeatWaveform() {
-            const frequency = Math.random() * 100 + 20;
-            const sampleRate = 1000;
-            const duration = 0.02;
-            const time = [];
-            const waveform = [];
-    
-            for (let i = 0; i < sampleRate * duration; i++) {
-                let t = i / sampleRate;
-                time.push(t);
-                waveform.push(Math.sin(2 * Math.PI * frequency * t));
+        // 振翅波形圖
+        let hasAnalyzed = false;
+
+        function updateWingbeatData() {
+            const videoId = "1";  // 可改為其他影片 ID
+            const sec = Math.floor(Date.now() / 1000) % 5;
+            const t = new Date().getTime();
+
+            // 如果尚未分析，先啟動分析
+            if (!hasAnalyzed) {
+                fetch(`/wingbeat/analyze/${videoId}`).then(res => res.json()).then(res => {
+                    console.log("分析觸發：", res.message);
+                    hasAnalyzed = true;
+
+                    // 初次分析後過 3 秒才開始抓圖（避免太快失敗）
+                    setTimeout(updateWingbeatData, 3000);
+                });
+                return;
             }
-    
-            const trace = {
-                x: time,
-                y: waveform,
-                type: 'scatter',
-                mode: 'lines',
-                line: { color: 'blue' }
-            };
-    
-            const layout = {
-                title: `振翅波形 (${Math.round(frequency)}Hz)`,
-                width: 400,
-                height: 350,
-                xaxis: { title: "Time [s]" },
-                yaxis: { title: "Amplitude" },
-                showlegend: false
-            };
-    
-            Plotly.newPlot('wingbeatWaveform', [trace], layout);
+
+            // 圖片更新
+            $("#waveformImg").attr("src", `/wingbeat/frame/waveform/${videoId}/${sec}?t=${t}`);
+
+            // 振翅次數更新
+            fetch(`/wingbeat/frame/count/${videoId}/${sec}`)
+                .then(res => res.ok ? res.text() : "0")
+                .then(cnt => {
+                    $("#wingbeatCount").text(`${cnt} 次`);
+                    
+                    const wingbeatCount = parseInt(cnt);
+                    const singleBugFreq = 20; // 假設每隻害蟲每秒平均振翅 20 次
+                    const estimatedNum = Math.round(wingbeatCount / singleBugFreq);
+
+                    $("#wingbeatEstimate").text(`${estimatedNum}`);
+                });
         }
+
+        // function updateWingbeatWaveform() {
+        //     const frequency = Math.random() * 100 + 20;
+        //     const sampleRate = 1000;
+        //     const duration = 0.02;
+        //     const time = [];
+        //     const waveform = [];
+    
+        //     for (let i = 0; i < sampleRate * duration; i++) {
+        //         let t = i / sampleRate;
+        //         time.push(t);
+        //         waveform.push(Math.sin(2 * Math.PI * frequency * t));
+        //     }
+    
+        //     const trace = {
+        //         x: time,
+        //         y: waveform,
+        //         type: 'scatter',
+        //         mode: 'lines',
+        //         line: { color: 'blue' }
+        //     };
+    
+        //     const layout = {
+        //         title: `振翅波形 (${Math.round(frequency)}Hz)`,
+        //         width: 400,
+        //         height: 350,
+        //         xaxis: { title: "Time [s]" },
+        //         yaxis: { title: "Amplitude" },
+        //         showlegend: false
+        //     };
+    
+        //     Plotly.newPlot('wingbeatWaveform', [trace], layout);
+        // }
     
         // 初始化與週期執行
         $(document).ready(function () {
             fetchPestData(true);
-            updateWingbeatWaveform();
-            setInterval(updateWingbeatWaveform, 5000);
+            updateWingbeatData();
+            setInterval(updateWingbeatData, 1000);
             setInterval(fetchPestData, 30000);
     
             $(".dropbtn").click(function () {
