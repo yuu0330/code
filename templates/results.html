@@ -136,38 +136,46 @@
             const weather = await fetchWeatherData();
             const data = generateFakeData();
 
+            const gaugeLayout = {
+                margin: { t: 40, b: 0, l: 0, r: 0 },
+                paper_bgcolor: 'white',
+                plot_bgcolor: 'white',
+                height: 250
+            };
+
             Plotly.newPlot('gaugeEnvTemp', [createGauge(weather.temperature, "環境溫度 (°C)", [0, 50], [
                 [0, 10, "#4CAF50"], [10, 20, "#00BCD4"], [20, 30, "#FFC107"], [30, 50, "#F44336"]
-            ])]);
+            ])], gaugeLayout);
 
             Plotly.newPlot('gaugeEnvHumidity', [createGauge(weather.humidity, "環境濕度 (%)", [0, 100], [
                 [0, 25, "#4CAF50"], [25, 50, "#00BCD4"], [50, 75, "#FFC107"], [75, 100, "#F44336"]
-            ])]);
+            ])], gaugeLayout);
 
             Plotly.newPlot('gaugePressure', [createGauge(data.pressure, "大氣壓力 (hPa)", [980, 1020], [
                 [980, 990, "#4CAF50"], [990, 1005, "#FFC107"], [1005, 1020, "#F44336"]
-            ])]);
+            ])], gaugeLayout);
 
-            Plotly.newPlot('gaugeRain', [createGauge(data.rainfall, "雨量 (mm)", [0, 10], [
-                [0, 2, "#4CAF50"], [2, 5, "#FFC107"], [5, 10, "#F44336"]
-            ])]);
+            Plotly.newPlot('gaugeRain', [createGauge(data.illumination, "光照度 (lux)", [0, 30000], [
+                [0, 5000, "#4CAF50"], [5000, 15000, "#FFC107"], [15000, 30000, "#F44336"]
+            ])], gaugeLayout);
 
             Plotly.newPlot('gaugeSoilTemp', [createGauge(data.soilTemperature, "土壤溫度 (°C)", [0, 40], [
                 [0, 10, "#4CAF50"], [10, 20, "#00BCD4"], [20, 30, "#FFC107"], [30, 40, "#F44336"]
-            ])]);
+            ])], gaugeLayout);
 
             Plotly.newPlot('gaugeSoilMoisture', [createGauge(data.soilMoisture, "土壤濕度 (%)", [0, 100], [
                 [0, 25, "#4CAF50"], [25, 50, "#00BCD4"], [50, 75, "#FFC107"], [75, 100, "#F44336"]
-            ])]);
+            ])], gaugeLayout);
 
             Plotly.newPlot('gaugeSoilEC', [createGauge(data.soilEC, "土壤EC值 (mmhos/cm)", [0.5, 3.5], [
                 [0.5, 1.5, "#4CAF50"], [1.5, 2.5, "#FFC107"], [2.5, 3.5, "#F44336"]
-            ])]);
+            ])], gaugeLayout);
 
-            Plotly.newPlot('gaugeIllumination', [createGauge(data.illumination, "光照度 (lux)", [0, 30000], [
-                [0, 5000, "#4CAF50"], [5000, 15000, "#FFC107"], [15000, 30000, "#F44336"]
-            ])]);
+            Plotly.newPlot('gaugeIllumination', [createGauge(data.soilMoisture, "土壤含水量 (%)", [0, 100], [
+                [0, 25, "#4CAF50"], [25, 50, "#00BCD4"], [50, 75, "#FFC107"], [75, 100, "#F44336"]
+            ])], gaugeLayout);
         }
+
 
         updateGauges();
         setInterval(updateGauges, 30000);
