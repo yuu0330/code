@@ -20,6 +20,7 @@
                 <button class="dropbtn">害蟲模組 ▼</button>
                 <div class="dropdown-content">
                     <a href="/degree">害蟲監測</a>
+                    <a href="/wingbeat_analysis">振翅頻率分析</a>
                     <a href="/degree_history">歷史資料</a>
                 </div>
             </div>
@@ -64,7 +65,10 @@
 
         <!-- 害蟲總數量 & 裝置編號 -->
         <div class="summary">
-            <p><strong>害蟲總數量：</strong> <span id="totalPests">載入中...</span> 隻</p>
+            <p>
+                <strong id="totalPestsLabel">今日害蟲總數量：</strong>
+                <span id="totalPests">載入中...</span> 隻
+            </p>              
             <p><strong>裝置編號：</strong> A1</p>
         </div>
 
@@ -131,24 +135,33 @@
         }
     
         // 查詢害蟲總數（根據日期）
-        function fetchPestData(useToday = false) {
-            let startDate = document.getElementById("startDate").value;
-            let endDate = document.getElementById("endDate").value;
-    
-            if (useToday || (!startDate && !endDate)) {
-                startDate = endDate = getTodayDate();
+        function fetchPestData() {
+            const startDate = $("#startDate").val();
+            const endDate = $("#endDate").val();
+
+            let url = "/ir_count_today";  // 預設查今日
+            if (startDate && endDate) {
+                url = `/ir_count_range?startDate=${startDate}&endDate=${endDate}`;
             }
-    
-            $.get(`/fetch_pest_history?startDate=${startDate}&endDate=${endDate}`, function(data) {
-                let totalPests = data.reduce((sum, record) => sum + record.pest_count, 0);
+
+            $.get(url, function(data) {
+                const totalPests = data.total_count || data.count || 0;
+                const label = (startDate && endDate) ? "查詢區間總數量：" : "今日害蟲總數量：";
                 $("#totalPests").text(totalPests);
-    
+                $("#totalPestsLabel").text(label);
+
+                if (startDate && endDate) {
+                    $("#rangeCount").text(totalPests);
+                } else {
+                    $("#rangeCount").text("--");
+                }
+
                 let levelText = "安全等級（16 隻以下）";
                 let color = "#4CAF50";
                 if (totalPests > 256) { color = "#F44336"; levelText = "嚴重爆發（256 隻以上）"; }
                 else if (totalPests > 64) { color = "#FFC107"; levelText = "需加強管理（64–256 隻）"; }
                 else if (totalPests > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
-    
+
                 drawUnifiedGauge("pestCountGauge", totalPests,
                     `病蟲害數量<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
                     [0, 300],
@@ -162,7 +175,8 @@
                 );
             });
         }
-    
+
+
         // 清除按鈕 - 只清除日期，但害蟲總數量仍顯示今日數據
         function clearDate() {
             $("#startDate").val('');
