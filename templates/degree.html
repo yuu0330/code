@@ -82,7 +82,7 @@
                 </div>
                 <img id="waveformImg" src="" width="400" style="display: none;">
                 <div id="noWaveformText" style="display: none; color: gray; font-size: 18px;">無資料</div>
-            </div>                       
+            </div>                    
             <div class="chart-box">
                 <img id="yoloStream" src="/detect_pests">
             </div>
@@ -140,8 +140,9 @@
             let today = new Date();
             return today.toISOString().split("T")[0];
         }
-    
+
         // 查詢害蟲總數（根據日期）
+        // 這裡隨機生成 1 到 20 隻害蟲數量
         function fetchPestData() {
             const startDate = $("#startDate").val();
             const endDate = $("#endDate").val();
@@ -152,17 +153,15 @@
             }
 
             $.get(url, function(data) {
-                const totalPests = data.total_count || data.count || 0;
+                // 隨機生成害蟲數量，這裡假設是 1 到 20 隻之間的隨機數字
+                const totalPests = Math.floor(Math.random() * 20) + 1;  // 隨機生成 1 到 20 之間的數字
                 const label = (startDate && endDate) ? "查詢區間總數量：" : "今日害蟲總數量：";
-                $("#totalPests").text(totalPests);
-                $("#totalPestsLabel").text(label);
+                
+                // 更新 UI 顯示
+                $("#totalPests").text(totalPests);  // 顯示隨機數量
+                $("#totalPestsLabel").text(label);  // 更新標題文字
 
-                if (startDate && endDate) {
-                    $("#rangeCount").text(totalPests);
-                } else {
-                    $("#rangeCount").text("--");
-                }
-
+                // 顯示安全等級與儀表圖
                 let levelText = "安全等級（16 隻以下）";
                 let color = "#4CAF50";
                 if (totalPests > 256) { color = "#F44336"; levelText = "嚴重爆發（256 隻以上）"; }
@@ -183,6 +182,47 @@
             });
         }
 
+        // 查詢害蟲總數（根據日期）
+        // function fetchPestData() {
+        //     const startDate = $("#startDate").val();
+        //     const endDate = $("#endDate").val();
+
+        //     let url = "/ir_count_today";  // 預設查今日
+        //     if (startDate && endDate) {
+        //         url = `/ir_count_range?startDate=${startDate}&endDate=${endDate}`;
+        //     }
+
+        //     $.get(url, function(data) {
+        //         const totalPests = data.total_count || data.count || 0;
+        //         const label = (startDate && endDate) ? "查詢區間總數量：" : "今日害蟲總數量：";
+        //         $("#totalPests").text(totalPests);
+        //         $("#totalPestsLabel").text(label);
+
+        //         if (startDate && endDate) {
+        //             $("#rangeCount").text(totalPests);
+        //         } else {
+        //             $("#rangeCount").text("--");
+        //         }
+
+        //         let levelText = "安全等級（16 隻以下）";
+        //         let color = "#4CAF50";
+        //         if (totalPests > 256) { color = "#F44336"; levelText = "嚴重爆發（256 隻以上）"; }
+        //         else if (totalPests > 64) { color = "#FFC107"; levelText = "需加強管理（64–256 隻）"; }
+        //         else if (totalPests > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
+
+        //         drawUnifiedGauge("pestCountGauge", totalPests,
+        //             `病蟲害數量<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
+        //             [0, 300],
+        //             [
+        //                 { range: [0, 16], color: "#4CAF50" },
+        //                 { range: [16, 64], color: "#1E90FF" },
+        //                 { range: [64, 256], color: "#FFC107" },
+        //                 { range: [256, 300], color: "#F44336" }
+        //             ],
+        //             color
+        //         );
+        //     });
+        // }
 
         // 清除按鈕 - 只清除日期，但害蟲總數量仍顯示今日數據
         function clearDate() {
@@ -256,19 +296,29 @@
                     $("#wingbeatEstimate").text("0");
                 });
             }
-        // function updateWingbeatWaveform() {
-        //     const frequency = Math.random() * 100 + 20;
-        //     const sampleRate = 1000;
-        //     const duration = 0.02;
+        
+        // // 隨機振翅波形圖
+        // let hasAnalyzed = false;
+
+        // function updateWingbeatData() {
+        //     const sec = Math.floor(Date.now() / 1000) % 5;
+        //     const t = new Date().getTime();
+
+        //     // 隨機生成波型數據
+        //     const sampleRate = 1000;  // 取樣率
+        //     const duration = 0.02;    // 時間範圍
+        //     const frequency = Math.random() * 100 + 20;  // 隨機生成 20Hz 到 120Hz 之間的頻率
         //     const time = [];
         //     const waveform = [];
-    
+
+        //     // 生成隨機的波型
         //     for (let i = 0; i < sampleRate * duration; i++) {
         //         let t = i / sampleRate;
         //         time.push(t);
-        //         waveform.push(Math.sin(2 * Math.PI * frequency * t));
+        //         waveform.push(Math.sin(2 * Math.PI * frequency * t));  // 使用正弦波模擬振翅波型
         //     }
-    
+
+        //     // 更新圖表
         //     const trace = {
         //         x: time,
         //         y: waveform,
@@ -276,7 +326,7 @@
         //         mode: 'lines',
         //         line: { color: 'blue' }
         //     };
-    
+
         //     const layout = {
         //         title: `振翅波形 (${Math.round(frequency)}Hz)`,
         //         width: 400,
@@ -285,10 +335,16 @@
         //         yaxis: { title: "Amplitude" },
         //         showlegend: false
         //     };
-    
+
         //     Plotly.newPlot('wingbeatWaveform', [trace], layout);
+
+        //     // 更新振翅次數
+        //     const wingbeatCount = Math.floor(Math.random() * 20) + 1;  // 隨機生成 1 到 20 次
+        //     const estimatedNum = Math.round(wingbeatCount / 20);  // 根據次數估算害蟲數量
+        //     $("#wingbeatCount").text(`${wingbeatCount} 次`);
+        //     $("#wingbeatEstimate").text(`${estimatedNum}`);
         // }
-    
+
         // 初始化與週期執行
         $(document).ready(function () {
             fetchPestData(true);

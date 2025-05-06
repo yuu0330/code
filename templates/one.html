@@ -51,7 +51,8 @@
             <div id="envTempGauge" class="gauge-box"></div>
             <div id="envHumdGauge" class="gauge-box"></div>
         </div>
-        <img src="http://192.168.1.39:5000/api/stream" alt="樹梅派影像串流" width="800" height="600">
+        <!-- 改為新的串流 URL，並加入網路連線檢測 -->
+        <img id="streamImage" src="http://pi5ca.ddns.net:5000/api/stream" alt="樹梅派影像串流" width="800" height="600">
     </div>
     
     <script>
@@ -160,6 +161,17 @@
             fetchTodayPestCount();
             fetchWeatherData();
         
+            // 重新連線檢查功能
+            function checkStreamConnection() {
+                const imgElement = $("#streamImage");
+                imgElement.on("error", function () {
+                    setTimeout(function () {
+                        imgElement.attr("src", "http://pi5ca.ddns.net:5000/api/stream");
+                    }, 5000); // 每 5 秒重新嘗試連線
+                });
+            }
+            checkStreamConnection();
+        
             // 導覽展開功能
             $(".dropbtn").click(function () {
                 $(".dropdown-content").not($(this).next()).slideUp(200);
@@ -171,7 +183,6 @@
                 }
             });
         });
-        </script>
-        
+    </script>
 </body>
 </html>
