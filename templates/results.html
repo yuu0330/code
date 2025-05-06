@@ -92,20 +92,20 @@
                 console.log("[Firebase 最新資料]:", latestData);
 
                 return {
-                    pressure: parseFloat(latestData.pressure) || 1000,  // 默認值 1000
-                    rainfall: parseFloat(latestData.illumination) || 12000,  // 默認值 12000
-                    soilTemperature: parseFloat(latestData.soil_temperature) || 22,
+                    pressure: parseFloat(latestData.pressure) || 995.6,  // 默認值 1000
+                    rainfall: parseFloat(latestData.illumination) || 880.8,  // 默認值 12000
+                    soilTemperature: parseFloat(latestData.soil_temperature) || 27.3,
                     soilMoisture: parseFloat(latestData.soil_moisture || 0) || 40,
-                    soilEC: parseFloat(latestData.ec) || 1.5
+                    soilEC: parseFloat(latestData.ec) || 1
                 };
             } catch (error) {
                 console.error("[Firebase 抓取錯誤]：", error);
-                return {
-                    pressure: 1000,
-                    rainfall: 12000,
-                    soilTemperature: 22,
+                return {    //可以填假資料
+                    pressure: 995.6,
+                    rainfall: 880.8,
+                    soilTemperature: 27.3,
                     soilMoisture: 40,
-                    soilEC: 1.5
+                    soilEC: 0.05
                 };
             }
         }

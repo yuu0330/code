@@ -346,42 +346,87 @@ def detect_pests():
     """讀取圖片並手動繪製 ID 編號與總數"""
     img = cv2.imread(INPUT_IMAGE_PATH)
 
+    # 使用 YOLO 模型進行物體檢測
     results = model(img)
-    count = 0
+    count = 0  # 初始化計數器
 
+    # 將檢測結果畫到圖片上
     for r in results:
         boxes = r.boxes
         for i, box in enumerate(boxes):
-            count += 1
+            count += 1  # 每次檢測到一個物體，計數加 1
             x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
             label = f"ID: {i+1}"
 
-            # 畫框
+            # 畫矩形框
             cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
-            # 畫 ID 字（加大字體與粗細）
+            # 畫 ID 標註
             cv2.putText(
                 img,
                 label,
                 (x1, y1 - 10),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                1.8,              # 字體加大
+                1.8,  # 字體加大
                 (0, 255, 0),
-                3                 # 粗細加粗
+                3  # 粗細加粗
             )
 
-    # 畫總數（字體更大一點）
+    # 畫總數（字體更大一點，並放置在左上角）
     cv2.putText(
         img,
         f"count: {count}",
         (20, 50),
         cv2.FONT_HERSHEY_SIMPLEX,
-        2.5,               # 更大字體
+        2.5,  # 更大字體
         (0, 0, 255),
-        6                  # 更粗邊框
+        6  # 更粗邊框
     )
 
+    # 儲存圖片並返回
     cv2.imwrite(OUTPUT_IMAGE_PATH, img)
     return send_file(OUTPUT_IMAGE_PATH, mimetype="image/jpeg")
+
+# @app.route("/detect_pests")
+# def detect_pests():
+#     """讀取圖片並手動繪製 ID 編號與總數"""
+#     img = cv2.imread(INPUT_IMAGE_PATH)
+
+#     results = model(img)
+#     count = 0
+
+#     for r in results:
+#         boxes = r.boxes
+#         for i, box in enumerate(boxes):
+#             count += 1
+#             x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
+#             label = f"ID: {i+1}"
+
+#             # 畫框
+#             cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
+#             # 畫 ID 字（加大字體與粗細）
+#             cv2.putText(
+#                 img,
+#                 label,
+#                 (x1, y1 - 10),
+#                 cv2.FONT_HERSHEY_SIMPLEX,
+#                 1.8,              # 字體加大
+#                 (0, 255, 0),
+#                 3                 # 粗細加粗
+#             )
+
+#     # 畫總數（字體更大一點）
+#     cv2.putText(
+#         img,
+#         f"count: {count}",
+#         (20, 50),
+#         cv2.FONT_HERSHEY_SIMPLEX,
+#         2.5,               # 更大字體
+#         (0, 0, 255),
+#         6                  # 更粗邊框
+#     )
+
+#     cv2.imwrite(OUTPUT_IMAGE_PATH, img)
+#     return send_file(OUTPUT_IMAGE_PATH, mimetype="image/jpeg")
 
 # ====================== 使用者管理 API ======================
 
@@ -814,6 +859,44 @@ def wingbeat_count(video_id, index):
     if 0 <= index < len(counts):
         return str(counts[index])
     return "0", 404
+
+# ====================== 樹梅派畫面+yolo ======================
+@app.route("/video_yolo_stream")
+def video_yolo_stream():
+    return Response(gen_yolo_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+def gen_yolo_stream():
+    cap = cv2.VideoCapture("http://pi5ca.ddns.net:5000/api/stream")
+    if not cap.isOpened():
+        print("[錯誤] 無法連線到外部串流")
+        return
+
+    while True:
+        success, frame = cap.read()
+        if not success:
+            break
+
+        # YOLO 偵測
+        results = model(frame)
+        count = 0  # 初始化 count
+        
+        for r in results:
+            boxes = r.boxes
+            for i, box in enumerate(boxes):
+                count += 1  # 每次檢測到一個物體，計數加 1
+                x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
+                label = f"ID: {i+1}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                cv2.putText(frame, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+
+        # 顯示總數（count）在左上角，調整字體大小為 2，並調整位置
+        cv2.putText(frame, f"Count: {count}", (20, height - 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 3.0, (0, 0, 255), 6)
+
+        ret, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
+        yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 # ====================== 啟動 Flask 伺服器 ======================
 

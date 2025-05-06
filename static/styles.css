@@ -169,13 +169,13 @@ body[data-page="degree"] .gauge-container {
     width: 100%;
     gap: 40px;
     flex-wrap: wrap;
-    margin-top: 40px;
+    margin-top: 20px;
 }
 
 /* 讓 degree 的 3 個圖表大小一致 */
 body[data-page="degree"] .chart-box {
-    width: 420px;
-    height: 360px;
+    width: 450px;
+    height: 400px;
     background: white;
     border-radius: 15px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
