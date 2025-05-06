@@ -3,11 +3,6 @@ import cv2
 from ultralytics import YOLO
 import requests
 import random
-<<<<<<< HEAD
-import os
-from datetime import datetime, timedelta
-from flask import Response
-=======
 import os, io, tempfile, numpy as np
 from datetime import datetime, timedelta
 from flask import Response
@@ -21,27 +16,18 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from threading import Thread
->>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 # Google Apps Script API URL
-<<<<<<< HEAD
-GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbwMh3kIbXRs9npW8YUmsBXZwd6mcU6UrQhx6Rn4Euk3Awct_AhiQpJWv4-LqzALc_4Sag/exec"
-=======
 GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbx9RzI9Fbs7Zgva4OxsnLCj0HHnLjuDyOfO1J8m4nT8VbHvEbeTepEI-xV8mv_APm_P/exec"
->>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
 
 # 初始化 YOLO 模型
 model = YOLO("best.pt")
 
 # 設定圖片路徑
-<<<<<<< HEAD
-INPUT_IMAGE_PATH = "static/斜紋夜蛾.jpg"
-=======
 INPUT_IMAGE_PATH = "static/237.jpg"
->>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
 OUTPUT_IMAGE_PATH = "static/detected_pests.jpg"
 
 # ====================== 網頁路由 ======================
@@ -70,25 +56,19 @@ def material_history():
 def results_history():
     return render_template("results_history.html")
 
-<<<<<<< HEAD
-=======
 @app.route("/material_analyze")
 def material_analyze():
     return render_template("material_analyze.html")
 
->>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
 # 這裡只保留一個 degree_history
 @app.route("/degree_history")
 def degree_history():
     return render_template("degree_history.html")
 
-<<<<<<< HEAD
-=======
 @app.route("/wingbeat_analysis")
 def wingbeat_analysis():
     return render_template("wingbeat_analysis.html")
 
->>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
 # ====================== 環境溫濕度 API ======================
 @app.route("/weather_proxy")
 def weather_proxy():
@@ -136,8 +116,6 @@ def weather_proxy():
             "humidity": 60.0
         })
 
-<<<<<<< HEAD
-=======
 # 初始化 Firebase（只做一次）
 cred = credentials.Certificate("environmentdata-52a5e-firebase-adminsdk-ahqaa-8c0f279ed1.json")  # JSON 憑證檔
 firebase_admin.initialize_app(cred, {
@@ -174,7 +152,6 @@ def latest_environment():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
->>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
 # ====================== 農藥使用紀錄 API ======================
 # ====================== 資材紀錄提交 API ======================
 @app.route("/submit_material", methods=["POST"])
@@ -222,26 +199,6 @@ def get_materials():
         print("[錯誤]", str(e))
         return jsonify({"error": f"資料讀取失敗：{str(e)}"}), 500
 
-<<<<<<< HEAD
-# ====================== 病蟲監測 API ======================
-
-@app.route("/pest_data")
-def pest_data():
-    """隨機產生病蟲數據"""
-    pest_count = random.randint(60, 110)
-    return jsonify({"pest_count": pest_count})
-
-@app.route("/detect_pests")
-def detect_pests():
-    """讀取圖片並標記病蟲位置"""
-    img = cv2.imread(INPUT_IMAGE_PATH)
-
-    results = model(img)
-    for r in results:
-        img = r.plot()  # 繪製 YOLO 偵測結果
-
-    cv2.imwrite(OUTPUT_IMAGE_PATH, img)  # 儲存處理後的圖片
-=======
 # ====================== ICM分析 ======================
 @app.route("/icm_pie_data")
 def icm_pie_data():
@@ -413,7 +370,6 @@ def detect_pests():
     )
 
     cv2.imwrite(OUTPUT_IMAGE_PATH, img)
->>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
     return send_file(OUTPUT_IMAGE_PATH, mimetype="image/jpeg")
 
 # ====================== 使用者管理 API ======================
@@ -465,11 +421,6 @@ def logout():
     return redirect(url_for("home"))
 
 # ====================== 病蟲歷史資料 API ======================
-<<<<<<< HEAD
-@app.route("/fetch_degree_history")
-def fetch_degree_history():
-    """模擬病蟲數量與振翅頻率的歷史數據"""
-=======
 # @app.route("/fetch_degree_history")
 # def fetch_degree_history():
 #     """模擬病蟲數量與振翅頻率的歷史數據"""
@@ -497,30 +448,12 @@ def fetch_degree_history():
 from dateutil.parser import parse  # 如果沒加，請放在最上面
 @app.route("/fetch_degree_history")
 def fetch_degree_history():
->>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
     start_date_str = request.args.get("startDate")
     end_date_str = request.args.get("endDate")
 
     if not start_date_str or not end_date_str:
         return jsonify({"error": "請提供開始和結束日期"}), 400
 
-<<<<<<< HEAD
-    start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-    end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
-
-    dates = []
-    amount = []
-    wingbeat_frequency = []
-
-    current_date = start_date
-    while current_date <= end_date:
-        dates.append(current_date.strftime("%Y-%m-%d %H:%M"))
-        amount.append(random.randint(50, 150))  # 隨機產生害蟲數量
-        wingbeat_frequency.append(random.uniform(20, 120))  # 隨機產生振翅頻率 (20Hz - 120Hz)
-        current_date += timedelta(hours=6)  # 每 6 小時取一筆數據
-
-    return jsonify({"dates": dates, "amount": amount, "wingbeatFrequency": wingbeat_frequency})
-=======
     try:
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d") + timedelta(days=1)
@@ -580,7 +513,6 @@ def fetch_degree_history():
         "amount": amount,
         "wingbeatFrequency": wingbeat_freq
     })
->>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
 
 # ====================== 場域歷史資料 API ======================
 def fetch_cwa_weather():
@@ -764,8 +696,6 @@ def video_feed():
 def stream_redirect():
     return redirect("http://192.168.1.39:5000/api/stream")
 
-<<<<<<< HEAD
-=======
 # ====================== 振翅頻率分析相關 ==================================
 waveform_frames_dict = {}
 spectrogram_frames_dict = {}
@@ -867,7 +797,6 @@ def wingbeat_count(video_id, index):
         return str(counts[index])
     return "0", 404
 
->>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
 # ====================== 啟動 Flask 伺服器 ======================
 
 if __name__ == "__main__":
