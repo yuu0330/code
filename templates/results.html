@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/styles.css">
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 </head>
 <body data-page="results">
 
@@ -81,14 +82,21 @@
                 const response = await fetch("https://environmentdata-52a5e-default-rtdb.firebaseio.com/test/data.json");
                 const rawData = await response.json();
                 const entries = Object.entries(rawData || {});
+
                 if (entries.length === 0) throw new Error("空資料");
+
+                // 取得最新的資料
                 const latestData = entries[entries.length - 1][1];
+
+                // 顯示從 Firebase 取得的資料（用於調試）
+                console.log("[Firebase 最新資料]:", latestData);
+
                 return {
-                    pressure: parseFloat(latestData.pressure),
-                    rainfall: parseFloat(latestData.illumination),
-                    soilTemperature: parseFloat(latestData.soil_temperature),
-                    soilMoisture: parseFloat(latestData.soil_moisture || 0),
-                    soilEC: parseFloat(latestData.ec)
+                    pressure: parseFloat(latestData.pressure) || 1000,  // 默認值 1000
+                    rainfall: parseFloat(latestData.illumination) || 12000,  // 默認值 12000
+                    soilTemperature: parseFloat(latestData.soil_temperature) || 22,
+                    soilMoisture: parseFloat(latestData.soil_moisture || 0) || 40,
+                    soilEC: parseFloat(latestData.ec) || 1.5
                 };
             } catch (error) {
                 console.error("[Firebase 抓取錯誤]：", error);
@@ -150,15 +158,20 @@
         async function updateGauges() {
             const weather = await fetchWeatherData();
             const firebaseData = await fetchFirebaseSoilData();
+            console.log("[從 Firebase 抓取到的資料]:", firebaseData);
             if (!firebaseData) return;
 
-            // 給每個欄位設定預設值（如果不存在就用 0）
-            const pressure = parseFloat(firebaseData.pressure) || 0;
-            const illumination = parseFloat(firebaseData.illumination) || 0;
-            const soilTemp = parseFloat(firebaseData.soilTemp) || 0;
-            const soilMoisture = parseFloat(firebaseData.soilMoisture) || 0;
-            const soilEC = parseFloat(firebaseData.soilEC) || 0;
+            // 設定每個資料欄位
+            const pressure = firebaseData.pressure;
+            const illumination = firebaseData.rainfall;
+            const soilTemp = firebaseData.soilTemperature;
+            const soilMoisture = firebaseData.soilMoisture;
+            const soilEC = firebaseData.soilEC;
 
+            // 顯示調試資訊，檢查是否有正確獲取數據
+            console.log("[顯示 Firebase 資料]:", firebaseData);
+
+            // 更新每個儀表圖
             Plotly.newPlot("gaugeEnvTemp", [createGauge(weather.temperature, "環境溫度 (°C)", [0, 50], [[0, 10, "#4CAF50"], [10, 20, "#00BCD4"], [20, 30, "#FFC107"], [30, 50, "#F44336"]])], gaugeLayout, gaugeConfig);
             Plotly.newPlot("gaugeEnvHumidity", [createGauge(weather.humidity, "環境濕度 (%)", [0, 100], [[0, 25, "#4CAF50"], [25, 50, "#00BCD4"], [50, 75, "#FFC107"], [75, 100, "#F44336"]])], gaugeLayout, gaugeConfig);
             Plotly.newPlot("gaugePressure", [createGauge(pressure, "大氣壓力 (hPa)", [980, 1020], [[980, 990, "#4CAF50"], [990, 1005, "#FFC107"], [1005, 1020, "#F44336"]])], gaugeLayout, gaugeConfig);
@@ -168,6 +181,7 @@
             Plotly.newPlot("gaugeSoilEC", [createGauge(soilEC, "土壤EC值 (mmhos/cm)", [0.5, 3.5], [[0.5, 1.5, "#4CAF50"], [1.5, 2.5, "#FFC107"], [2.5, 3.5, "#F44336"]])], gaugeLayout, gaugeConfig);
         }
 
+        // 每30秒更新一次
         updateGauges();
         setInterval(updateGauges, 30000);
 

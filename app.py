@@ -16,6 +16,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from threading import Thread
+from datetime import datetime
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -121,37 +123,46 @@ cred = credentials.Certificate("environmentdata-52a5e-firebase-adminsdk-ahqaa-8c
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://environmentdata-52a5e-default-rtdb.firebaseio.com/'
 })
-@app.route("/firebase_latest_data")
-def firebase_latest_data():
+@app.route("/fetch_firebase_data")
+def fetch_firebase_data():
+    """從 Firebase 抓取最新資料"""
     try:
-        ref = db.reference("environmentdata/test/data")
+        ref = db.reference("test/data")  # 正確的資料路徑是 test/data
         all_data = ref.get()
 
         if not all_data:
             return jsonify({"error": "Firebase 無資料"}), 404
 
-        # 取出最新一筆（照 timestamp 排序）
-        sorted_data = sorted(all_data.items(), key=lambda x: x[1].get("timestamp", ""))
-        latest_entry = sorted_data[-1][1]
+        # 打印抓取的資料
+        print("[Debug] Firebase 抓到的資料：", all_data)
 
+        # 直接取最新一筆資料，不依賴 timestamp
+        latest_entry = list(all_data.values())[-1]  # 直接取最後一筆資料
+        print("[Debug] 最新資料:", latest_entry)
         return jsonify(latest_entry)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-@app.route("/latest_environment")
-def latest_environment():
+
+def fetch_latest_data():
     try:
-        ref = db.reference('test/data')
-        data = ref.get()
-        if not data:
-            return jsonify({"error": "無資料"}), 404
+        ref = db.reference("test/data")
+        all_data = ref.get()
 
-        latest_key = sorted(data.keys())[-1]
-        latest_data = data[latest_key]
+        if not all_data:
+            print("[Error] Firebase 沒有資料")
+            return jsonify({"error": "Firebase 無資料"}), 404
 
-        return jsonify(latest_data)
+        print("[Debug] Firebase 抓到的資料：", all_data)
+
+        latest_entry = list(all_data.values())[-1]  # 直接取最後一筆資料
+        print("[Debug] 最新資料:", latest_entry)
+        return jsonify(latest_entry)
+
     except Exception as e:
+        print("[Error] Firebase 連線錯誤:", e)
         return jsonify({"error": str(e)}), 500
-    
+
 # ====================== 農藥使用紀錄 API ======================
 # ====================== 資材紀錄提交 API ======================
 @app.route("/submit_material", methods=["POST"])
@@ -225,7 +236,7 @@ def icm_pie_data():
 
         # 定義下拉選單中顯示的值（用於分類）
         known_places = ["A", "B", "C", "D", "右區", "黃金果區F1", "綜合果樹區F2",
-                         "G1溫室1", "G2溫室2", "G3溫室3", "育苗區", "資材室或工具室", "加工室(廚房或教室)"]
+                        "G1溫室1", "G2溫室2", "G3溫室3", "育苗區", "資材室或工具室", "加工室(廚房或教室)"]
         known_crops = ["茄子", "秋葵", "玉米筍", "玉米", "冬瓜", "南瓜", "莧瓜", "絲瓜",
                         "紅豆", "青花筍", "高麗菜", "青椒", "辣椒", "番茄", "洋蔥", "蔥", "番薯葉",
                         "高莖類", "白菜類", "黃金果", "芒果", "檸檬", "百香果", "火龍果", "畜禽製作物", "草莓"]
