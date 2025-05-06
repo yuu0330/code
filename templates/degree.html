@@ -75,14 +75,23 @@
         <!-- 病蟲害監測視覺化圖表 -->
         <div class="gauge-container">
             <div class="chart-box" id="pestCountGauge"></div>
-            <div class="chart-box waveform-wrapper">
+            <!-- <div class="chart-box waveform-wrapper">
                 <div class="wingbeat-label">
                     每秒振翅次數：<span id="wingbeatCount">載入中</span><br>
                     推估數量：<span id="wingbeatEstimate">--</span> 隻
                 </div>
                 <img id="waveformImg" src="" width="400" style="display: none;">
                 <div id="noWaveformText" style="display: none; color: gray; font-size: 18px;">無資料</div>
-            </div>                    
+            </div>                     -->
+            <div class="chart-box waveform-wrapper">
+                <div class="wingbeat-label">
+                    每秒振翅次數：<span id="wingbeatCount">載入中</span><br>
+                    推估數量：<span id="wingbeatEstimate">--</span> 隻
+                </div>
+                <div id="wingbeatWaveform"></div> <!-- 用來顯示波形圖的 div，設置id -->
+                <div id="noWaveformText" style="display: none; color: gray; font-size: 18px;">無資料</div>
+            </div>
+            
             <div class="chart-box">
                 <img id="yoloStream" src="/detect_pests">
             </div>
@@ -147,39 +156,32 @@
             const startDate = $("#startDate").val();
             const endDate = $("#endDate").val();
 
-            let url = "/ir_count_today";  // 預設查今日
-            if (startDate && endDate) {
-                url = `/ir_count_range?startDate=${startDate}&endDate=${endDate}`;
-            }
+            // 隨機生成害蟲數量，這裡假設是 1 到 20 隻之間的隨機數字
+            const totalPests = Math.floor(Math.random() * 20) + 1;  // 隨機生成 1 到 20 之間的數字
+            const label = (startDate && endDate) ? "查詢區間總數量：" : "今日害蟲總數量：";
+            
+            // 更新 UI 顯示
+            $("#totalPests").text(totalPests);  // 顯示隨機數量
+            $("#totalPestsLabel").text(label);  // 更新標題文字
 
-            $.get(url, function(data) {
-                // 隨機生成害蟲數量，這裡假設是 1 到 20 隻之間的隨機數字
-                const totalPests = Math.floor(Math.random() * 20) + 1;  // 隨機生成 1 到 20 之間的數字
-                const label = (startDate && endDate) ? "查詢區間總數量：" : "今日害蟲總數量：";
-                
-                // 更新 UI 顯示
-                $("#totalPests").text(totalPests);  // 顯示隨機數量
-                $("#totalPestsLabel").text(label);  // 更新標題文字
+            // 顯示安全等級與儀表圖
+            let levelText = "安全等級（16 隻以下）";
+            let color = "#4CAF50";
+            if (totalPests > 256) { color = "#F44336"; levelText = "嚴重爆發（256 隻以上）"; }
+            else if (totalPests > 64) { color = "#FFC107"; levelText = "需加強管理（64–256 隻）"; }
+            else if (totalPests > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
 
-                // 顯示安全等級與儀表圖
-                let levelText = "安全等級（16 隻以下）";
-                let color = "#4CAF50";
-                if (totalPests > 256) { color = "#F44336"; levelText = "嚴重爆發（256 隻以上）"; }
-                else if (totalPests > 64) { color = "#FFC107"; levelText = "需加強管理（64–256 隻）"; }
-                else if (totalPests > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
-
-                drawUnifiedGauge("pestCountGauge", totalPests,
-                    `病蟲害數量<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
-                    [0, 300],
-                    [
-                        { range: [0, 16], color: "#4CAF50" },
-                        { range: [16, 64], color: "#1E90FF" },
-                        { range: [64, 256], color: "#FFC107" },
-                        { range: [256, 300], color: "#F44336" }
-                    ],
-                    color
-                );
-            });
+            drawUnifiedGauge("pestCountGauge", totalPests,
+                `病蟲害數量<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
+                [0, 300],
+                [
+                    { range: [0, 16], color: "#4CAF50" },
+                    { range: [16, 64], color: "#1E90FF" },
+                    { range: [64, 256], color: "#FFC107" },
+                    { range: [256, 300], color: "#F44336" }
+                ],
+                color
+            );
         }
 
         // 查詢害蟲總數（根據日期）
@@ -232,118 +234,117 @@
         }
     
         // 振翅波形圖
-        let hasAnalyzed = false;
-
-        function updateWingbeatData() {
-            const videoId = "fall_armyworm";  // 可改為其他影片 ID
-            const sec = Math.floor(Date.now() / 1000) % 5;
-            const t = new Date().getTime();
-
-            // 如果尚未分析，先啟動分析
-            if (!hasAnalyzed) {
-                fetch(`/wingbeat/analyze/${videoId}`)
-                    .then(res => {
-                        if (!res.ok) throw new Error("伺服器錯誤");
-                        return res.json();
-                    })
-                    .then(res => {
-                        console.log("分析觸發：", res.message);
-                        hasAnalyzed = true;
-
-                        // 等 5 秒後再開始抓圖（確保分析已完成）
-                        setTimeout(() => {
-                            updateWingbeatData();
-                            setInterval(updateWingbeatData, 1000);  // 每秒更新
-                        }, 5000);
-                    })
-                    .catch(err => {
-                        console.error("分析失敗：", err);
-                        $("#wingbeatCount").text("0 次");
-                        $("#wingbeatEstimate").text("0");
-                        $("#waveformImg").hide();
-                        $("#noWaveformText").show();
-                    });
-                return;
-            }
-            // 圖片更新
-            const imgUrl = `/wingbeat/frame/waveform/${videoId}/${sec}?t=${t}`;
-            $("#waveformImg").attr("src", imgUrl)
-                .off("error")
-                .on("error", function () {
-                    $(this).hide();
-                    $("#noWaveformText").show();
-                })
-                .on("load", function () {
-                    $(this).show();
-                    $("#noWaveformText").hide();
-                });
-
-            // 振翅次數更新
-            fetch(`/wingbeat/frame/count/${videoId}/${sec}`)
-                .then(res => {
-                    if (!res.ok) throw new Error("無資料");
-                    return res.text();
-                })
-                .then(cnt => {
-                    const wingbeatCount = parseInt(cnt) || 0;
-                    const estimatedNum = Math.round(wingbeatCount / 20);
-                    $("#wingbeatCount").text(`${wingbeatCount} 次`);
-                    $("#wingbeatEstimate").text(`${estimatedNum}`);
-                })
-                .catch(err => {
-                    console.error("振翅資料錯誤：", err);
-                    $("#wingbeatCount").text("0 次");
-                    $("#wingbeatEstimate").text("0");
-                });
-            }
-        
-        // // 隨機振翅波形圖
         // let hasAnalyzed = false;
 
         // function updateWingbeatData() {
+        //     const videoId = "2";  // 可改為其他影片 ID
         //     const sec = Math.floor(Date.now() / 1000) % 5;
         //     const t = new Date().getTime();
 
-        //     // 隨機生成波型數據
-        //     const sampleRate = 1000;  // 取樣率
-        //     const duration = 0.02;    // 時間範圍
-        //     const frequency = Math.random() * 100 + 20;  // 隨機生成 20Hz 到 120Hz 之間的頻率
-        //     const time = [];
-        //     const waveform = [];
+        //     // 如果尚未分析，先啟動分析
+        //     if (!hasAnalyzed) {
+        //         fetch(`/wingbeat/analyze/${videoId}`)
+        //             .then(res => {
+        //                 if (!res.ok) throw new Error("伺服器錯誤");
+        //                 return res.json();
+        //             })
+        //             .then(res => {
+        //                 console.log("分析觸發：", res.message);
+        //                 hasAnalyzed = true;
 
-        //     // 生成隨機的波型
-        //     for (let i = 0; i < sampleRate * duration; i++) {
-        //         let t = i / sampleRate;
-        //         time.push(t);
-        //         waveform.push(Math.sin(2 * Math.PI * frequency * t));  // 使用正弦波模擬振翅波型
+        //                 // 等 5 秒後再開始抓圖（確保分析已完成）
+        //                 setTimeout(() => {
+        //                     updateWingbeatData();
+        //                     setInterval(updateWingbeatData, 1000);  // 每秒更新
+        //                 }, 5000);
+        //             })
+        //             .catch(err => {
+        //                 console.error("分析失敗：", err);
+        //                 $("#wingbeatCount").text("0 次");
+        //                 $("#wingbeatEstimate").text("0");
+        //                 $("#waveformImg").hide();
+        //                 $("#noWaveformText").show();
+        //             });
+        //         return;
         //     }
+        //     // 圖片更新
+        //     const imgUrl = `/wingbeat/frame/waveform/${videoId}/${sec}?t=${t}`;
+        //     $("#waveformImg").attr("src", imgUrl)
+        //         .off("error")
+        //         .on("error", function () {
+        //             $(this).hide();
+        //             $("#noWaveformText").show();
+        //         })
+        //         .on("load", function () {
+        //             $(this).show();
+        //             $("#noWaveformText").hide();
+        //         });
 
-        //     // 更新圖表
-        //     const trace = {
-        //         x: time,
-        //         y: waveform,
-        //         type: 'scatter',
-        //         mode: 'lines',
-        //         line: { color: 'blue' }
-        //     };
+        //     // 振翅次數更新
+        //     fetch(`/wingbeat/frame/count/${videoId}/${sec}`)
+        //         .then(res => {
+        //             if (!res.ok) throw new Error("無資料");
+        //             return res.text();
+        //         })
+        //         .then(cnt => {
+        //             const wingbeatCount = parseInt(cnt) || 0;
+        //             const estimatedNum = Math.round(wingbeatCount / 20);
+        //             $("#wingbeatCount").text(`${wingbeatCount} 次`);
+        //             $("#wingbeatEstimate").text(`${estimatedNum}`);
+        //         })
+        //         .catch(err => {
+        //             console.error("振翅資料錯誤：", err);
+        //             $("#wingbeatCount").text("0 次");
+        //             $("#wingbeatEstimate").text("0");
+        //         });
+        //     }
+        
+        // 隨機振翅波形圖
+let hasAnalyzed = false;
 
-        //     const layout = {
-        //         title: `振翅波形 (${Math.round(frequency)}Hz)`,
-        //         width: 400,
-        //         height: 350,
-        //         xaxis: { title: "Time [s]" },
-        //         yaxis: { title: "Amplitude" },
-        //         showlegend: false
-        //     };
+function updateWingbeatData() {
+    const sec = Math.floor(Date.now() / 1000) % 5;
+    const t = new Date().getTime();
 
-        //     Plotly.newPlot('wingbeatWaveform', [trace], layout);
+    // 隨機生成波型數據
+    const sampleRate = 1000;  // 取樣率
+    const duration = 0.02;    // 時間範圍
+    const frequency = Math.random() * 100 + 20;  // 隨機生成 20Hz 到 120Hz 之間的頻率
+    const time = [];
+    const waveform = [];
 
-        //     // 更新振翅次數
-        //     const wingbeatCount = Math.floor(Math.random() * 20) + 1;  // 隨機生成 1 到 20 次
-        //     const estimatedNum = Math.round(wingbeatCount / 20);  // 根據次數估算害蟲數量
-        //     $("#wingbeatCount").text(`${wingbeatCount} 次`);
-        //     $("#wingbeatEstimate").text(`${estimatedNum}`);
-        // }
+    // 生成隨機的波型
+    for (let i = 0; i < sampleRate * duration; i++) {
+        let t = i / sampleRate;
+        time.push(t);
+        waveform.push(Math.sin(2 * Math.PI * frequency * t));  // 使用正弦波模擬振翅波型
+    }
+
+    // 更新圖表
+    const trace = {
+        x: time,
+        y: waveform,
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: 'blue' }
+    };
+
+    const layout = {
+        width: 400,
+        height: 350,
+        xaxis: { title: "Time [s]" },
+        yaxis: { title: "Amplitude" },
+        showlegend: false
+    };
+
+    Plotly.newPlot('wingbeatWaveform', [trace], layout);
+
+    // 更新振翅次數
+    const wingbeatCount = Math.floor(Math.random() * 20) + 1;  // 隨機生成 1 到 20 次
+    const estimatedNum = Math.round(wingbeatCount / 20);  // 根據次數估算害蟲數量
+    $("#wingbeatCount").text(`${wingbeatCount} 次`);
+    $("#wingbeatEstimate").text(`${estimatedNum}`);
+}
 
         // 初始化與週期執行
         $(document).ready(function () {
