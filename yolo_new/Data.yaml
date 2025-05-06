@@ -1,0 +1,6 @@
+train: C:/Users/Win11/Desktop/web/yolo_2/images/train/images
+val: C:/Users/Win11/Desktop/web/yolo_2/images/val/images
+test: C:/Users/Win11/Desktop/web/yolo_2/images/test/images
+
+names:
+  0: Spodoptera litura

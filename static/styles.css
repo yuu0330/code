@@ -165,6 +165,7 @@ body[data-page="results"] .gauge-container:nth-child(2) {
 body[data-page="degree"] .gauge-container {
     display: flex;
     justify-content: center;
+<<<<<<< HEAD
     align-items: center;
     width: 100%;
     gap: 50px;
@@ -190,6 +191,37 @@ body[data-page="degree"] .yolo-box {
     align-items: center;
     justify-content: center;
     padding-top: 15px;
+=======
+    align-items: flex-start;
+    width: 100%;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+}
+
+/* 讓 degree 的 3 個圖表大小一致 */
+body[data-page="degree"] .chart-box {
+    width: 420px;
+    height: 360px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;    /* 垂直置中 */
+    justify-content: center; /* 水平置中 */
+    padding: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* 確保圖片不超出邊框並居中 */
+.chart-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    margin: auto;
+>>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
 }
 
 /* 儀表圖內部數字與標題 */
@@ -211,6 +243,7 @@ body[data-page="degree"] .yolo-box {
     font-weight: bold;
 }
 
+<<<<<<< HEAD
 /* 針對 degree.html 的額外圖表（波形 & YOLO） */
 body[data-page="degree"] .wave-box {
     width: 450px;
@@ -238,6 +271,11 @@ body[data-page="degree"] .yolo-box {
 body[data-page="degree"] .yolo-box img {
     width: 100%;
     height: auto;
+=======
+body[data-page="degree"] .yolo-box img {
+    max-width: 100%;
+    max-height: 100%;
+>>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
     object-fit: contain;
     border-radius: 10px;
 }
@@ -680,3 +718,88 @@ body[data-page="daily_trend"] .daily-chart-wrapper {
         padding: 15px;
     }
 }
+<<<<<<< HEAD
+=======
+
+/* -------- 針對 results.html 圖表每排 4 個設定 -------- */
+/* 每排最多 4 個，擴寬容器 */
+body[data-page="results"] .gauge-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+    max-width: 1600px; 
+}
+
+/* 加寬與增高儀表框，避免文字擠出或被切 */
+body[data-page="results"] .gauge-box {
+    flex: 0 0 360px;        
+    height: 320px;          
+    padding: 20px;          
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+
+/* 響應式：平板每排2個 */
+@media (max-width: 1024px) {
+    body[data-page="results"] .gauge-box {
+        flex: 1 1 calc(50% - 40px);
+    }
+}
+
+/* 響應式：手機每排1個 */
+@media (max-width: 600px) {
+    body[data-page="results"] .gauge-box {
+        flex: 1 1 100%;
+    }
+}
+
+/* 解決 gauge 跑出框問題 */
+body[data-page="results"] .gauge-box > div.plot-container {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+plotly 本體強制塞進容器內
+body[data-page="results"] .gauge-box .js-plotly-plot,
+body[data-page="results"] .gauge-box .plot-container {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    overflow: visible !important;  /* 關鍵：允許內容可見 */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* 包含振翅圖片與文字的容器 */
+.waveform-wrapper {
+    position: relative;
+}
+
+/* 放在圖片上方的文字 */
+.wingbeat-label {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    z-index: 10;
+}
+>>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73

@@ -17,6 +17,10 @@
       <button class="dropbtn">害蟲模組 ▼</button>
       <div class="dropdown-content">
         <a href="/degree">害蟲監測</a>
+<<<<<<< HEAD
+=======
+        <a href="/wingbeat_analysis">振翅頻率分析</a>
+>>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
         <a href="/degree_history">歷史資料</a>
       </div>
     </div>
@@ -31,6 +35,10 @@
       <button class="dropbtn">ICM管理 ▼</button>
       <div class="dropdown-content">
         <a href="/material">資材紀錄</a>
+<<<<<<< HEAD
+=======
+        <a href="/material_analyze">ICM分析</a>
+>>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
         <a href="/material_history">歷史資料</a>
       </div>
     </div>
@@ -123,7 +131,42 @@
         <label>請輸入其他農作物：</label>
         <input type="text" id="cropOther">
       </div>
+<<<<<<< HEAD
   
+=======
+            <!-- 工作事項 -->
+            <label>工作事項：</label>
+            <div class="checkbox-group" id="crop-group">
+              <label><input type="checkbox" name="items[]" value="無"> 無</label>
+              <label><input type="checkbox" name="items[]" value="種植"> 種植</label>
+              <label><input type="checkbox" name="items[]" value="除草"> 除草</label>
+              <label><input type="checkbox" name="items[]" value="施肥"> 施肥</label>
+              <label><input type="checkbox" name="items[]" value="碎枝"> 碎枝</label>
+              <label><input type="checkbox" name="items[]" value="養蜂"> 養蜂</label>
+              <label><input type="checkbox" name="items[]" value="疏枝"> 疏枝</label>
+              <label><input type="checkbox" name="items[]" value="開洞"> 開洞</label>
+              <label><input type="checkbox" name="items[]" value="買苗"> 買苗</label>
+              <label><input type="checkbox" name="items[]" value="補苗"> 補苗</label>
+              <label><input type="checkbox" name="items[]" value="育苗"> 育苗</label>
+              <label><input type="checkbox" name="items[]" value="套袋"> 套袋</label>
+              <label><input type="checkbox" name="items[]" value="採收"> 採收</label>
+              <label><input type="checkbox" name="items[]" value="出貨"> 出貨</label>
+              <label><input type="checkbox" name="items[]" value="包裝集貨"> 包裝集貨</label>
+              <label><input type="checkbox" name="items[]" value="砍除雜木"> 砍除雜木</label>
+              <label><input type="checkbox" name="items[]" value="去除病株"> 去除病株</label>
+              <label><input type="checkbox" name="items[]" value="病蟲害防治"> 病蟲害防治</label>
+              <label><input type="checkbox" name="items[]" value="拔除老舊植株"> 拔除老舊植株</label>
+              <label><input type="checkbox" name="items[]" value="中耕機翻土培土"> 中耕機翻土培土</label>
+              <label><input type="checkbox" name="items[]" value="整地，或整理鋪設抑草蓆、銀黑布"> 整地，或整理鋪設抑草蓆、銀黑布</label>
+              <label><input type="checkbox" name="items[]" value="整修農機具或設備，整理資材室、工具室、冰箱或各種農業資材等"> 整修農機具或設備，整理資材室、工具室、冰箱或各種農業資材等</label>
+              <label><input type="checkbox" name="items[]" value="其他"> 其他</label>
+            </div>
+            <div id="itemsOtherWrapper" style="display:none; margin-bottom:10px;">
+              <label>請輸入其他工作事項：</label>
+              <input type="text" id="itemsOther">
+            </div>
+
+>>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
       <!-- 病蟲害防治資材 -->
       <label>病蟲害防治資材：</label>
       <div class="checkbox-group" id="material-group">
@@ -178,6 +221,10 @@
           time: $("#time").val(),
           place: getCheckedValues("place[]", "placeOther"),
           crops: getCheckedValues("crop[]", "cropOther"),
+<<<<<<< HEAD
+=======
+          items: getCheckedValues("items[]", "itemsOther"),  // ★ 加這行
+>>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
           material: getCheckedValues("material[]", "materialOther"),
           fertilizer: getCheckedValues("fertilizer[]", "fertilizerOther")
         };
@@ -210,6 +257,10 @@
       }
       bindOtherCheckbox("place[]", "placeOtherWrapper");
       bindOtherCheckbox("crop[]", "cropOtherWrapper");
+<<<<<<< HEAD
+=======
+      bindOtherCheckbox("items[]", "itemsOtherWrapper");
+>>>>>>> 7723c8e0c833fa905ac92d2c4cf9a09cce4d0a73
       bindOtherCheckbox("material[]", "materialOtherWrapper");
       bindOtherCheckbox("fertilizer[]", "fertilizerOtherWrapper");
     
