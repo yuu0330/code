@@ -89,7 +89,7 @@ def weather_proxy():
 
         # 用 GeoInfo > TownName 找
         target_station = next((station for station in stations 
-                               if station.get("GeoInfo", {}).get("TownName") == "萬巒鄉"), None)
+            if station.get("GeoInfo", {}).get("TownName") == "萬巒鄉"), None)
 
         if not target_station:
             raise ValueError("找不到萬巒鄉資料")
@@ -718,13 +718,12 @@ def analyze_wingbeat(video_id, video_path):
     extract_audio_from_video(video_path, wav_path)
     audio, sr = librosa.load(wav_path, sr=SAMPLE_RATE)
     samples_per_frame = int(SAMPLE_RATE * FRAME_DURATION)
-    total_frames = min(len(audio) // samples_per_frame, 5)  # 只分析前 5 秒
+    total_frames = len(audio) // samples_per_frame  # 計算整段影片的幀數
 
     for i in range(total_frames):
         chunk = audio[i * samples_per_frame:(i+1) * samples_per_frame]
-        # ... (保持畫圖邏輯不變)
-
-        # 波形圖
+        
+        # 波形圖生成
         fig1, ax1 = plt.subplots(figsize=(4, 2))
         librosa.display.waveshow(chunk, sr=sr, ax=ax1)
         ax1.axis('off')
@@ -734,7 +733,7 @@ def analyze_wingbeat(video_id, video_path):
         buf1.seek(0)
         waveform_frames.append(buf1.read())
 
-        # 頻譜圖
+        # 頻譜圖生成
         S = librosa.feature.melspectrogram(y=chunk, sr=sr)
         S_dB = librosa.power_to_db(S, ref=np.max)
         fig2, ax2 = plt.subplots(figsize=(4, 2))
@@ -766,21 +765,28 @@ def wingbeat_video(video_id):
 
 @app.route("/wingbeat/analyze/<video_id>")
 def wingbeat_trigger_analysis(video_id):
-    video_path = f"static/wingbeat_videos/{video_id}.mp4"
-    if not os.path.exists(video_path):
-        return "影片不存在", 404
+    try:
+        video_path = f"static/wingbeat_videos/{video_id}.mp4"
+        if not os.path.exists(video_path):
+            print(f"[錯誤] 找不到影片檔案：{video_path}")
+            return jsonify({"error": "影片不存在"}), 404
 
-    if video_id not in waveform_frames_dict:
-        Thread(target=analyze_wingbeat, args=(video_id, video_path)).start()
-        return jsonify({"message": "背景分析已啟動"})
-    else:
-        return jsonify({"message": "已分析過，使用快取資料"})
+        if video_id not in waveform_frames_dict:
+            print(f"[分析啟動] 分析影片：{video_path}")
+            Thread(target=analyze_wingbeat, args=(video_id, video_path)).start()
+            return jsonify({"message": "背景分析已啟動"})
+        else:
+            return jsonify({"message": "已分析過，使用快取資料"})
+    except Exception as e:
+        print(f"[錯誤] 無法分析影片：{e}")
+        return jsonify({"error": f"伺服器錯誤：{str(e)}"}), 500
 
 @app.route("/wingbeat/frame/waveform/<video_id>/<int:index>")
 def wingbeat_waveform(video_id, index):
     frames = waveform_frames_dict.get(video_id, [])
     if 0 <= index < len(frames):
         return Response(frames[index], mimetype='image/jpeg')
+    print(f"[錯誤] 找不到波形圖：{video_id} - {index}")
     return "無資料", 404
 
 @app.route("/wingbeat/frame/spectrogram/<video_id>/<int:index>")
@@ -788,6 +794,7 @@ def wingbeat_spectrogram(video_id, index):
     frames = spectrogram_frames_dict.get(video_id, [])
     if 0 <= index < len(frames):
         return Response(frames[index], mimetype='image/jpeg')
+    print(f"[錯誤] 找不到頻譜圖：{video_id} - {index}")
     return "無資料", 404
 
 @app.route("/wingbeat/frame/count/<video_id>/<int:index>")

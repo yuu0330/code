@@ -54,9 +54,15 @@
         </div>
         <div>
             <h4>波形圖</h4>
-            <img id="waveform" src="/wingbeat/frame/waveform/1/0" width="480">
+            <div id="waveformContainer">
+                <img id="waveform" src="" width="480" style="display:none;">
+                <span id="noWaveform" style="display:none; color: red;">無資料</span>
+            </div>
             <h4>頻譜圖</h4>
-            <img id="spectrogram" src="/wingbeat/frame/spectrogram/1/0" width="480">
+            <div id="spectrogramContainer">
+                <img id="spectrogram" src="" width="480" style="display:none;">
+                <span id="noSpectrogram" style="display:none; color: red;">無資料</span>
+            </div>
         </div>    
     </div>
     <script>
@@ -66,7 +72,7 @@
             const waveform = document.getElementById("waveform");
             const spectrogram = document.getElementById("spectrogram");
             const countBox = document.getElementById("wingbeatCount");
-            const videoId = document.getElementById("videoSelector").value;
+            const videoId = document.getElementById("videoSource").src.split("/").pop(); // 使用影片檔名作為 videoId
 
             // 啟動背景分析（非同步）
             fetch(`/wingbeat/analyze/${videoId}`);
@@ -77,13 +83,32 @@
                     const sec = Math.floor(video.currentTime);
                     const t = new Date().getTime();
 
+                    // 更新波形圖和頻譜圖
                     waveform.src = `/wingbeat/frame/waveform/${videoId}/${sec}?t=${t}`;
                     spectrogram.src = `/wingbeat/frame/spectrogram/${videoId}/${sec}?t=${t}`;
 
+                    // 檢查是否有資料，如果沒有，顯示無資料
                     fetch(`/wingbeat/frame/count/${videoId}/${sec}`)
                         .then(res => res.text())
                         .then(cnt => {
+                            console.log(cnt); // 查看計數結果，應該是 0 或其他數字
                             countBox.innerText = `${cnt} 次`;
+                            if (cnt === "0") {
+                                // 顯示無資料
+                                document.getElementById("waveform").style.display = "none";
+                                document.getElementById("spectrogram").style.display = "none";
+                                document.getElementById("noWaveform").style.display = "block";
+                                document.getElementById("noSpectrogram").style.display = "block";
+                            } else {
+                                // 顯示圖片並隱藏無資料
+                                document.getElementById("noWaveform").style.display = "none";
+                                document.getElementById("noSpectrogram").style.display = "none";
+                                document.getElementById("waveform").style.display = "block";
+                                document.getElementById("spectrogram").style.display = "block";
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Error fetching data:", err);
                         });
                 }
             }, 500);

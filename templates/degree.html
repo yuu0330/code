@@ -77,11 +77,12 @@
             <div class="chart-box" id="pestCountGauge"></div>
             <div class="chart-box waveform-wrapper">
                 <div class="wingbeat-label">
-                    每秒振翅次數：<span id="wingbeatCount">載入中</span>
-                    <br>推估數量：<span id="wingbeatEstimate">--</span> 隻
+                    每秒振翅次數：<span id="wingbeatCount">載入中</span><br>
+                    推估數量：<span id="wingbeatEstimate">--</span> 隻
                 </div>
-                <img id="waveformImg" src="" width="400">
-            </div>            
+                <img id="waveformImg" src="" width="400" style="display: none;">
+                <div id="noWaveformText" style="display: none; color: gray; font-size: 18px;">無資料</div>
+            </div>                       
             <div class="chart-box">
                 <img id="yoloStream" src="/detect_pests">
             </div>
@@ -194,39 +195,67 @@
         let hasAnalyzed = false;
 
         function updateWingbeatData() {
-            const videoId = "1";  // 可改為其他影片 ID
+            const videoId = "fall_armyworm";  // 可改為其他影片 ID
             const sec = Math.floor(Date.now() / 1000) % 5;
             const t = new Date().getTime();
 
             // 如果尚未分析，先啟動分析
             if (!hasAnalyzed) {
-                fetch(`/wingbeat/analyze/${videoId}`).then(res => res.json()).then(res => {
-                    console.log("分析觸發：", res.message);
-                    hasAnalyzed = true;
+                fetch(`/wingbeat/analyze/${videoId}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error("伺服器錯誤");
+                        return res.json();
+                    })
+                    .then(res => {
+                        console.log("分析觸發：", res.message);
+                        hasAnalyzed = true;
 
-                    // 初次分析後過 3 秒才開始抓圖（避免太快失敗）
-                    setTimeout(updateWingbeatData, 3000);
-                });
+                        // 等 5 秒後再開始抓圖（確保分析已完成）
+                        setTimeout(() => {
+                            updateWingbeatData();
+                            setInterval(updateWingbeatData, 1000);  // 每秒更新
+                        }, 5000);
+                    })
+                    .catch(err => {
+                        console.error("分析失敗：", err);
+                        $("#wingbeatCount").text("0 次");
+                        $("#wingbeatEstimate").text("0");
+                        $("#waveformImg").hide();
+                        $("#noWaveformText").show();
+                    });
                 return;
             }
-
             // 圖片更新
-            $("#waveformImg").attr("src", `/wingbeat/frame/waveform/${videoId}/${sec}?t=${t}`);
+            const imgUrl = `/wingbeat/frame/waveform/${videoId}/${sec}?t=${t}`;
+            $("#waveformImg").attr("src", imgUrl)
+                .off("error")
+                .on("error", function () {
+                    $(this).hide();
+                    $("#noWaveformText").show();
+                })
+                .on("load", function () {
+                    $(this).show();
+                    $("#noWaveformText").hide();
+                });
 
             // 振翅次數更新
             fetch(`/wingbeat/frame/count/${videoId}/${sec}`)
-                .then(res => res.ok ? res.text() : "0")
+                .then(res => {
+                    if (!res.ok) throw new Error("無資料");
+                    return res.text();
+                })
                 .then(cnt => {
-                    $("#wingbeatCount").text(`${cnt} 次`);
-                    
-                    const wingbeatCount = parseInt(cnt);
-                    const singleBugFreq = 20; // 假設每隻害蟲每秒平均振翅 20 次
-                    const estimatedNum = Math.round(wingbeatCount / singleBugFreq);
-
+                    const wingbeatCount = parseInt(cnt) || 0;
+                    const estimatedNum = Math.round(wingbeatCount / 20);
+                    $("#wingbeatCount").text(`${wingbeatCount} 次`);
                     $("#wingbeatEstimate").text(`${estimatedNum}`);
+                })
+                .catch(err => {
+                    console.error("振翅資料錯誤：", err);
+                    $("#wingbeatCount").text("0 次");
+                    $("#wingbeatEstimate").text("0");
                 });
-        }
-
+            }
         // function updateWingbeatWaveform() {
         //     const frequency = Math.random() * 100 + 20;
         //     const sampleRate = 1000;
@@ -264,7 +293,7 @@
         $(document).ready(function () {
             fetchPestData(true);
             updateWingbeatData();
-            setInterval(updateWingbeatData, 1000);
+            // setInterval(updateWingbeatData, 1000);
             setInterval(fetchPestData, 30000);
     
             $(".dropbtn").click(function () {
