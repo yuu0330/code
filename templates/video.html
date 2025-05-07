@@ -47,7 +47,8 @@
     <div class="stream-container">
         <h2>場域串流</h2>
         <!-- 改為新的串流 URL，並加入網路連線檢測 -->
-        <img id="streamImage" src="http://pi5ca.ddns.net:5000/api/stream" alt="樹梅派影像串流" width="800" height="600">
+        <!-- <img id="streamImage" src="http://pi5ca.ddns.net:5000/api/stream" alt="樹梅派影像串流" width="800" height="600"> -->
+        <img id="stream_redirect" src="http://192.168.178.153:5000/api/stream" alt="樹梅派影像串流" width="800" height="600">
     </div>
     <script>
         $(document).ready(function () {
@@ -65,10 +66,10 @@
 
             // 重新連線檢查功能
             function checkStreamConnection() {
-                const imgElement = $("#streamImage");
+                const imgElement = $("#stream_redirect");
                 imgElement.on("error", function () {
                     setTimeout(function () {
-                        imgElement.attr("src", "http://pi5ca.ddns.net:5000/api/stream");
+                        imgElement.attr("src", "http://192.168.178.153:5000/api/stream");
                     }, 5000); // 每 5 秒重新嘗試連線
                 });
             }
