@@ -947,9 +947,9 @@ def gen_yolo_stream():
             retry_count += 1
             time.sleep(5)  # 每次重試間隔 5 秒
 
-    if cap is None or not cap.isOpened():
-        print("[錯誤] 超過最大重試次數，無法連接到串流")
-        return  # 如果無法成功連接，停止
+#     if cap is None or not cap.isOpened():
+#         print("[錯誤] 超過最大重試次數，無法連接到串流")
+#         return  # 如果無法成功連接，停止
 
     while True:
         success, frame = cap.read()
@@ -967,9 +967,9 @@ def gen_yolo_stream():
                     retry_count += 1
                     time.sleep(5)
             
-            if not cap.isOpened():
-                print("[錯誤] 無法重新連接，終止串流")
-                break
+#             if not cap.isOpened():
+#                 print("[錯誤] 無法重新連接，終止串流")
+#                 break
 
         # YOLO 偵測（這裡應該確保 model 變數已經定義）
         results = model(frame)
@@ -993,9 +993,9 @@ def gen_yolo_stream():
         cv2.putText(frame, f"Count: {count}", (20, height - 20), 
                     cv2.FONT_HERSHEY_SIMPLEX, 3.0, (0, 0, 255), 6)
 
-        ret, buffer = cv2.imencode('.jpg', frame)
-        frame = buffer.tobytes()
-        yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+#         ret, buffer = cv2.imencode('.jpg', frame)
+#         frame = buffer.tobytes()
+#         yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 # ====================== 啟動 Flask 伺服器 ======================
 
