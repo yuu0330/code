@@ -92,8 +92,8 @@
             </div>
             
             <div class="chart-box">
-                <img id="yoloStream" src="/detect_pests">
-                <!-- <img id="yoloStream" src="/video_yolo_stream"> -->
+                <!-- <img id="yoloStream" src="/detect_pests"> -->
+                <img id="yoloStream" src="/video_yolo_stream">
             </div>
         </div>
     </div>
@@ -153,67 +153,54 @@
         // 查詢害蟲總數（根據日期）
         // 這裡隨機生成 1 到 20 隻害蟲數量
         function fetchPestData() {
-    const startDate = $("#startDate").val();
-    const endDate = $("#endDate").val();
+            const startDate = $("#startDate").val();
+            const endDate = $("#endDate").val();
 
-    // 隨機生成害蟲數量
-    const totalPests = Math.floor(Math.random() * 20) + 1;
-    console.log("[Debug] 隨機生成的害蟲數量：", totalPests);  // 確保數據正確生成
+            // 隨機生成害蟲數量
+            const totalPests = Math.floor(Math.random() * 20) + 1;
+            console.log("[Debug] 隨機生成的害蟲數量：", totalPests);  // 確保數據正確生成
 
-    // 更新 UI 顯示
-    $("#totalPests").text(totalPests); 
-    $("#totalPestsLabel").text((startDate && endDate) ? "查詢區間總數量：" : "今日害蟲總數量：");
+            // 更新 UI 顯示
+            $("#totalPests").text(totalPests); 
+            $("#totalPestsLabel").text((startDate && endDate) ? "查詢區間總數量：" : "今日害蟲總數量：");
 
-    // 清除舊的儀表圖
-    $("#pestCountGauge").empty();  
+            // 清除舊的儀表圖
+            $("#pestCountGauge").empty();  
 
-    let levelText = "安全等級（16 隻以下）";
-    let color = "#4CAF50";
-    if (totalPests > 256) { color = "#F44336"; levelText = "嚴重爆發（256 隻以上）"; }
-    else if (totalPests > 64) { color = "#FFC107"; levelText = "需加強管理（64–256 隻）"; }
-    else if (totalPests > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
+            let levelText = "安全等級（16 隻以下）";
+            let color = "#4CAF50";
+            if (totalPests > 256) { color = "#F44336"; levelText = "嚴重爆發（256 隻以上）"; }
+            else if (totalPests > 64) { color = "#FFC107"; levelText = "需加強管理（64–256 隻）"; }
+            else if (totalPests > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
 
-    drawUnifiedGauge("pestCountGauge", totalPests,
-        `病蟲害數量<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
-        [0, 300],
-        [
-            { range: [0, 16], color: "#4CAF50" },
-            { range: [16, 64], color: "#1E90FF" },
-            { range: [64, 256], color: "#FFC107" },
-            { range: [256, 300], color: "#F44336" }
-        ],
-        color
-    );
-}
+            drawUnifiedGauge("pestCountGauge", totalPests,
+                `病蟲害數量<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
+                [0, 300],
+                [
+                    { range: [0, 16], color: "#4CAF50" },
+                    { range: [16, 64], color: "#1E90FF" },
+                    { range: [64, 256], color: "#FFC107" },
+                    { range: [256, 300], color: "#F44336" }
+                ],
+                color
+            );
+        }
 
-        // 查詢害蟲總數（根據日期）
-        // function fetchPestData() {
-        //     const startDate = $("#startDate").val();
-        //     const endDate = $("#endDate").val();
+        //查詢害蟲總數（根據日期）
+        // 當 Firebase 資料更新時，更新儀表圖
+        // function updatePestCount() {
+        //     $.get("/ir_count_today", function(data) {
+        //         const totalPests = data.count || 0;
+        //         $("#totalPests").text(totalPests);  // 顯示更新後的總數
 
-        //     let url = "/ir_count_today";  // 預設查今日
-        //     if (startDate && endDate) {
-        //         url = `/ir_count_range?startDate=${startDate}&endDate=${endDate}`;
-        //     }
-
-        //     $.get(url, function(data) {
-        //         const totalPests = data.total_count || data.count || 0;
-        //         const label = (startDate && endDate) ? "查詢區間總數量：" : "今日害蟲總數量：";
-        //         $("#totalPests").text(totalPests);
-        //         $("#totalPestsLabel").text(label);
-
-        //         if (startDate && endDate) {
-        //             $("#rangeCount").text(totalPests);
-        //         } else {
-        //             $("#rangeCount").text("--");
-        //         }
-
+        //         // 根據害蟲總數顯示不同級別的顏色與等級
         //         let levelText = "安全等級（16 隻以下）";
         //         let color = "#4CAF50";
         //         if (totalPests > 256) { color = "#F44336"; levelText = "嚴重爆發（256 隻以上）"; }
         //         else if (totalPests > 64) { color = "#FFC107"; levelText = "需加強管理（64–256 隻）"; }
         //         else if (totalPests > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
 
+        //         // 更新儀表圖
         //         drawUnifiedGauge("pestCountGauge", totalPests,
         //             `病蟲害數量<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
         //             [0, 300],
@@ -228,6 +215,9 @@
         //     });
         // }
 
+        // $(document).ready(function () {
+        //     setInterval(updatePestCount, 30000);  // 每 30 秒更新一次
+        // });
         // 清除按鈕 - 只清除日期，但害蟲總數量仍顯示今日數據
         function clearDate() {
             $("#startDate").val('');

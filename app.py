@@ -286,6 +286,7 @@ def ir_count_today():
         db_data = firestore.client(app=firestore_app)
         total_count = 0
 
+        # 抓取當日的資料
         sub_collections = db_data.collection("ir_daily_count").document(today_str).collections()
         for sub_col in sub_collections:
             docs = sub_col.stream()
@@ -293,6 +294,7 @@ def ir_count_today():
                 total_count += doc.to_dict().get("count", 0)
 
         return jsonify({"count": total_count})
+
     except Exception as e:
         print("[錯誤] ir_count_today:", e)
         return jsonify({"count": 0})
@@ -750,7 +752,7 @@ def video_feed():
 
 @app.route("/stream_redirect")
 def stream_redirect():
-    return redirect("http://192.168.1.39:5000/api/stream")
+    return redirect("http://192.168.178.153:5000/api/stream")
 
 # ====================== 振翅頻率分析相關 ==================================
 waveform_frames_dict = {}
@@ -861,14 +863,14 @@ def wingbeat_count(video_id, index):
     return "0", 404
 
 # ====================== 樹梅派畫面+yolo ======================
-# import time
+import time
 # @app.route("/video_yolo_stream")
 # def gen_yolo_stream():
 #     cap = None
 #     retry_count = 0
 #     max_retries = 5  # 設定最大重試次數
 #     while retry_count < max_retries:
-#         cap = cv2.VideoCapture("http://pi5ca.ddns.net:5000/api/stream")
+#         cap = cv2.VideoCapture("http://192.168.178.153:5000/api/stream")
 #         if cap.isOpened():
 #             print("[Info] 串流連線成功")
 #             break
@@ -921,6 +923,75 @@ def wingbeat_count(video_id, index):
 #         # 顯示總數（count）在左上角，調整字體大小為 2，並調整位置
 #         cv2.putText(frame, f"Count: {count}", (20, height - 20),  # 使用 `height` 來設置 y 位置
 #                     cv2.FONT_HERSHEY_SIMPLEX, 3.0, (0, 0, 255), 6)
+
+#         ret, buffer = cv2.imencode('.jpg', frame)
+#         frame = buffer.tobytes()
+#         yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+@app.route("/video_yolo_stream")
+def video_yolo_stream():
+    return Response(gen_yolo_stream(), 
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+def gen_yolo_stream():
+    cap = None
+    retry_count = 0
+    max_retries = 5  # 設定最大重試次數
+    while retry_count < max_retries:
+        cap = cv2.VideoCapture("http://192.168.178.153:5000/api/stream")
+        if cap.isOpened():
+            print("[Info] 串流連線成功")
+            break
+        else:
+            print("[錯誤] 無法連接到串流，正在重試...")
+            retry_count += 1
+            time.sleep(5)  # 每次重試間隔 5 秒
+
+#     if cap is None or not cap.isOpened():
+#         print("[錯誤] 超過最大重試次數，無法連接到串流")
+#         return  # 如果無法成功連接，停止
+
+    while True:
+        success, frame = cap.read()
+        if not success:
+            print("[錯誤] 串流讀取失敗，正在重試...")
+            cap.release()
+            retry_count = 0
+            while retry_count < max_retries:
+                cap = cv2.VideoCapture("http://192.168.178.153:5000/api/stream")
+                if cap.isOpened():
+                    print("[Info] 串流重新連線成功")
+                    break
+                else:
+                    print("[錯誤] 無法重新連接到串流，正在重試...")
+                    retry_count += 1
+                    time.sleep(5)
+            
+#             if not cap.isOpened():
+#                 print("[錯誤] 無法重新連接，終止串流")
+#                 break
+
+        # YOLO 偵測（這裡應該確保 model 變數已經定義）
+        results = model(frame)
+        count = 0  # 初始化 count
+        
+        # 獲取圖像的尺寸
+        height, width, _ = frame.shape  # 確保 frame 不是 None
+        
+        # 偵測結果（假設你的 YOLO 偵測已經運作）
+        for r in results:
+            boxes = r.boxes
+            for i, box in enumerate(boxes):
+                count += 1
+                x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
+                label = f"ID: {i+1}"
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                cv2.putText(frame, label, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+
+        # 顯示總數（count）
+        cv2.putText(frame, f"Count: {count}", (20, height - 20), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 3.0, (0, 0, 255), 6)
 
 #         ret, buffer = cv2.imencode('.jpg', frame)
 #         frame = buffer.tobytes()
