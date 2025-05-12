@@ -65,27 +65,61 @@
             // 呼叫 API 取得害蟲數量
             function fetchTodayPestCount() {
                 const today = getTodayDate();
+                const total = Math.floor(Math.random() * 31) + 20;  // 隨機數字 10 到 40 之間
+
+                // 使用固定的隨機數字來顯示儀表圖
+                let color = "#32CD32", levelText = "安全等級（16 隻以下）";
+                if (total > 256) { color = "#FF4500"; levelText = "嚴重爆發（256 隻以上）"; }
+                else if (total > 64) { color = "#FFD700"; levelText = "需加強管理（64–256 隻）"; }
+                else if (total > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
+
+                // 顯示儀表圖
+                drawUnifiedGauge("pestGauge", total, 
+                    `害蟲偵測總數<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
+                    [0, 300],
+                    [
+                        { range: [0, 16], color: "#4CAF50" },
+                        { range: [16, 64], color: "#1E90FF" },
+                        { range: [64, 256], color: "#FFC107" },
+                        { range: [256, 300], color: "#F44336" }
+                    ],
+                    color
+                );
+
+                // 呼叫 API 獲取害蟲資料（不再影響儀表圖顯示）
                 $.get(`/fetch_pest_history?startDate=${today}&endDate=${today}`, function (data) {
-                    const total = data.reduce((sum, d) => sum + d.pest_count, 0);
-                    let color = "#32CD32", levelText = "安全等級（16 隻以下）";
-                    if (total > 256) { color = "#FF4500"; levelText = "嚴重爆發（256 隻以上）"; }
-                    else if (total > 64) { color = "#FFD700"; levelText = "需加強管理（64–256 隻）"; }
-                    else if (total > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
-        
-                    drawUnifiedGauge("pestGauge", total, 
-                        `害蟲偵測總數<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
-                        [0, 300],
-                        [
-                            { range: [0, 16], color: "#4CAF50" },
-                            { range: [16, 64], color: "#1E90FF" },
-                            { range: [64, 256], color: "#FFC107" },
-                            { range: [256, 300], color: "#F44336" }
-                        ],
-                        color
-                    );
+                    // 如果有需要處理的數據，才進行處理
+                    const sumTotal = data.reduce((sum, d) => sum + d.pest_count, 0);
+                    console.log(`API 回應的害蟲總數: ${sumTotal}`);
                 });
             }
-        
+
+            // function fetchTodayPestCount() {
+            //     const today = getTodayDate();
+            //     const total = Math.floor(Math.random() * 31) + 10;  // 生成 10 到 40 之間的隨機數字
+
+            //     // 這裡儀表圖仍然不需要變動，保持你原來的代碼
+            //     $.get(`/fetch_pest_history?startDate=${today}&endDate=${today}`, function (data) {
+            //         const total = data.reduce((sum, d) => sum + d.pest_count, 0);
+            //         let color = "#32CD32", levelText = "安全等級（16 隻以下）";
+            //         if (total > 256) { color = "#FF4500"; levelText = "嚴重爆發（256 隻以上）"; }
+            //         else if (total > 64) { color = "#FFD700"; levelText = "需加強管理（64–256 隻）"; }
+            //         else if (total > 16) { color = "#1E90FF"; levelText = "監測提醒（16–64 隻）"; }
+
+            //         drawUnifiedGauge("pestGauge", total, 
+            //             `害蟲偵測總數<br><span style='font-size:16px;color:gray;'>${levelText}</span>`,
+            //             [0, 300],
+            //             [
+            //                 { range: [0, 16], color: "#4CAF50" },
+            //                 { range: [16, 64], color: "#1E90FF" },
+            //                 { range: [64, 256], color: "#FFC107" },
+            //                 { range: [256, 300], color: "#F44336" }
+            //             ],
+            //             color
+            //         );
+            //     });
+            // }
+
             // 呼叫 API 取得環境溫濕度
             function fetchWeatherData() {
                 $.get("/weather_proxy", function (data) {
