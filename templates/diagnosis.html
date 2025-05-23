@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>場域串流</title>
+    <title>病蟲害診斷</title>
     <link rel="stylesheet" href="/static/consult.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
@@ -41,8 +41,8 @@
             <div class="dropdown">
                 <button class="dropbtn">病蟲害諮詢 ▼</button>
                 <div class="dropdown-content">
-                    <a href="/material">病蟲害通報</a>
-                    <a href="/material_analyze">病蟲害診斷</a>
+                    <a href="/consult">病蟲害通報</a>
+                    <a href="/diagnosis">病蟲害診斷</a>
                 </div>
             </div>
             <a href="/daily_trend">每日變化</a>
@@ -55,7 +55,19 @@
         
     </div>
     <script>
-        
+        // 確保下拉選單可以展開
+        $(document).ready(function () {
+            $(".dropbtn").click(function () {
+                $(".dropdown-content").not($(this).next()).slideUp(200);
+                $(this).next(".dropdown-content").slideToggle(200);
+            });
+
+            $(document).click(function (event) {
+                if (!$(event.target).closest(".dropdown").length) {
+                    $(".dropdown-content").slideUp(200);
+                }
+            });
+        });
     </script>    
 </body>
 </html>
