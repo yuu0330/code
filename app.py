@@ -62,7 +62,6 @@ def results_history():
 def material_analyze():
     return render_template("material_analyze.html")
 
-# 這裡只保留一個 degree_history
 @app.route("/degree_history")
 def degree_history():
     return render_template("degree_history.html")
@@ -71,6 +70,13 @@ def degree_history():
 def wingbeat_analysis():
     return render_template("wingbeat_analysis.html")
 
+@app.route("/consult")
+def consult():
+    return render_template("consult.html")
+
+@app.route("/diagnosis")
+def diagnosis():
+    return render_template("diagnosis.html")
 # ====================== 環境溫濕度 API ======================
 @app.route("/weather_proxy")
 def weather_proxy():
