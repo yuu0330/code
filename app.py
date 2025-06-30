@@ -78,6 +78,48 @@ def consult():
 def diagnosis():
     return render_template("diagnosis.html")
 # ====================== 環境溫濕度 API ======================
+from pymongo import MongoClient
+from firebase_admin import db
+
+# 連到 MongoDB
+client = MongoClient("mongodb://localhost:27017/")
+mongo_db = client["environmentdata"]
+collection = mongo_db["env_data"]
+
+@app.route("/sync_firebase_to_mongo")
+def sync_firebase_to_mongo():
+    try:
+        # 抓取 Firebase 的所有資料
+        ref = db.reference("test/data")
+        all_data = ref.get()
+
+        if not all_data:
+            return jsonify({"error": "Firebase 無資料"}), 404
+
+        # 逐筆存到 MongoDB
+        for key, item in all_data.items():
+            item["_firebase_key"] = key  # 可以順便記下 Firebase 的 key
+            collection.insert_one(item)
+
+        return jsonify({"message": "同步完成", "count": len(all_data)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+from bson import ObjectId
+
+@app.route("/latest_env_data")
+def latest_env_data():
+    try:
+        latest_doc = collection.find().sort("_id", -1).limit(1)[0]
+
+        # 把 ObjectId 轉成字串，避免 JSON 轉換錯誤
+        if "_id" in latest_doc:
+            latest_doc["_id"] = str(latest_doc["_id"])
+
+        return jsonify(latest_doc)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/weather_proxy")
 def weather_proxy():
     url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0001-001"
@@ -124,50 +166,50 @@ def weather_proxy():
             "humidity": 60.0
         })
 
-# 初始化 Firebase（只做一次）
+# # 初始化 Firebase（只做一次）
 cred = credentials.Certificate("environmentdata-52a5e-firebase-adminsdk-ahqaa-8c0f279ed1.json")  # JSON 憑證檔
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://environmentdata-52a5e-default-rtdb.firebaseio.com/'
 })
-@app.route("/fetch_firebase_data")
-def fetch_firebase_data():
-    """從 Firebase 抓取最新資料"""
-    try:
-        ref = db.reference("test/data")  # 正確的資料路徑是 test/data
-        all_data = ref.get()
+# @app.route("/fetch_firebase_data")
+# def fetch_firebase_data():
+#     """從 Firebase 抓取最新資料"""
+#     try:
+#         ref = db.reference("test/data")  # 正確的資料路徑是 test/data
+#         all_data = ref.get()
 
-        if not all_data:
-            return jsonify({"error": "Firebase 無資料"}), 404
+#         if not all_data:
+#             return jsonify({"error": "Firebase 無資料"}), 404
 
-        # 打印抓取的資料
-        print("[Debug] Firebase 抓到的資料：", all_data)
+#         # 打印抓取的資料
+#         print("[Debug] Firebase 抓到的資料：", all_data)
 
-        # 直接取最新一筆資料，不依賴 timestamp
-        latest_entry = list(all_data.values())[-1]  # 直接取最後一筆資料
-        print("[Debug] 最新資料:", latest_entry)
-        return jsonify(latest_entry)
+#         # 直接取最新一筆資料，不依賴 timestamp
+#         latest_entry = list(all_data.values())[-1]  # 直接取最後一筆資料
+#         print("[Debug] 最新資料:", latest_entry)
+#         return jsonify(latest_entry)
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
 
-def fetch_latest_data():
-    try:
-        ref = db.reference("test/data")
-        all_data = ref.get()
+# def fetch_latest_data():
+#     try:
+#         ref = db.reference("test/data")
+#         all_data = ref.get()
 
-        if not all_data:
-            print("[Error] Firebase 沒有資料")
-            return jsonify({"error": "Firebase 無資料"}), 404
+#         if not all_data:
+#             print("[Error] Firebase 沒有資料")
+#             return jsonify({"error": "Firebase 無資料"}), 404
 
-        print("[Debug] Firebase 抓到的資料：", all_data)
+#         print("[Debug] Firebase 抓到的資料：", all_data)
 
-        latest_entry = list(all_data.values())[-1]  # 直接取最後一筆資料
-        print("[Debug] 最新資料:", latest_entry)
-        return jsonify(latest_entry)
+#         latest_entry = list(all_data.values())[-1]  # 直接取最後一筆資料
+#         print("[Debug] 最新資料:", latest_entry)
+#         return jsonify(latest_entry)
 
-    except Exception as e:
-        print("[Error] Firebase 連線錯誤:", e)
-        return jsonify({"error": str(e)}), 500
+#     except Exception as e:
+#         print("[Error] Firebase 連線錯誤:", e)
+#         return jsonify({"error": str(e)}), 500
 
 # ====================== 農藥使用紀錄 API ======================
 # ====================== 資材紀錄提交 API ======================

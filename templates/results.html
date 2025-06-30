@@ -70,6 +70,8 @@
             <div class="gauge-box" id="gaugeSoilMoisture"></div>
             <div class="gauge-box" id="gaugeSoilEC"></div>
         </div>
+
+        <p id="latestTime" style="text-align:center; margin-top: 30px; font-size: 18px; color: #333;"></p>
     </div>
 
     <script>
@@ -85,33 +87,29 @@
 
         async function fetchFirebaseSoilData() {
             try {
-                const response = await fetch("https://environmentdata-52a5e-default-rtdb.firebaseio.com/test/data.json");
-                const rawData = await response.json();
-                const entries = Object.entries(rawData || {});
+                // const response = await fetch("https://environmentdata-52a5e-default-rtdb.firebaseio.com/test/data.json");
+                const response = await fetch("/latest_env_data");
+                const latestData = await response.json();
 
-                if (entries.length === 0) throw new Error("空資料");
-
-                // 取得最新的資料
-                const latestData = entries[entries.length - 1][1];
-
-                // 顯示從 Firebase 取得的資料（用於調試）
-                console.log("[Firebase 最新資料]:", latestData);
+                console.log("[Mongo 最新資料]:", latestData);
 
                 return {
-                    pressure: parseFloat(latestData.pressure) || 995.6,  // 默認值 1000
-                    rainfall: parseFloat(latestData.illumination) || 880.8,  // 默認值 12000
-                    soilTemperature: parseFloat(latestData.soil_temperature) || 27.3,
-                    soilMoisture: parseFloat(latestData.soil_moisture || 0) || 40,
-                    soilEC: parseFloat(latestData.ec) || 1
+                    pressure: parseFloat(latestData.pressure ?? 995.6),
+                    rainfall: parseFloat(latestData.lux ?? 880.8),
+                    soilTemperature: parseFloat(latestData.soil_temp ?? 27.3),
+                    soilMoisture: parseFloat(latestData.soil_vwc ?? 40),
+                    soilEC: parseFloat(latestData.soil_ec ?? 1),
+                    timestamp: latestData.timestamp ?? "無時間資料"
                 };
             } catch (error) {
-                console.error("[Firebase 抓取錯誤]：", error);
-                return {    //可以填假資料
+                console.error("[Mongo 抓取錯誤]:", error);
+                return {
                     pressure: 995.6,
                     rainfall: 880.8,
                     soilTemperature: 27.3,
                     soilMoisture: 40,
-                    soilEC: 0.05
+                    soilEC: 1,
+                    timestamp: "無時間資料"
                 };
             }
         }
@@ -185,6 +183,9 @@
             Plotly.newPlot("gaugeSoilTemp", [createGauge(soilTemp, "土壤溫度 (°C)", [0, 40], [[0, 10, "#4CAF50"], [10, 20, "#00BCD4"], [20, 30, "#FFC107"], [30, 40, "#F44336"]])], gaugeLayout, gaugeConfig);
             Plotly.newPlot("gaugeSoilMoisture", [createGauge(soilMoisture, "土壤濕度 (%)", [0, 100], [[0, 25, "#4CAF50"], [25, 50, "#00BCD4"], [50, 75, "#FFC107"], [75, 100, "#F44336"]])], gaugeLayout, gaugeConfig);
             Plotly.newPlot("gaugeSoilEC", [createGauge(soilEC, "土壤EC值 (mmhos/cm)", [0.5, 3.5], [[0.5, 1.5, "#4CAF50"], [1.5, 2.5, "#FFC107"], [2.5, 3.5, "#F44336"]])], gaugeLayout, gaugeConfig);
+
+            // 更新最新資料時間
+            document.getElementById("latestTime").innerText = "最新資料時間：" + firebaseData.timestamp;
         }
 
         // 每30秒更新一次
