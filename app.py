@@ -621,41 +621,6 @@ def fetch_degree_history():
     })
 
 # ====================== 場域歷史資料 API ======================
-def fetch_cwa_weather():
-    url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035"
-    params = {
-        "Authorization": "CWA-233147B7-C268-43C1-BC20-C819EE149C00",
-        "format": "JSON",
-        "LocationName": "內埔鄉",
-        "ElementName": "平均溫度,平均相對濕度"
-    }
-
-    try:
-        response = requests.get(url, params=params)
-        data = response.json()
-
-        # 確保有 Locations 資料
-        location_data = data["records"]["Locations"][0]["Location"][0]
-        elements = location_data["WeatherElement"]
-
-        # 用 ElementName 尋找正確項目
-        temp_elem = next((e for e in elements if e["ElementName"] == "平均溫度"), None)
-        hum_elem = next((e for e in elements if e["ElementName"] == "平均相對濕度"), None)
-
-        if not temp_elem or not hum_elem:
-            raise ValueError("無法從 API 找到平均溫度或平均相對濕度")
-
-        # 取第一筆時間資料的數值
-        temp = float(temp_elem["Time"][0]["ElementValue"][0]["Value"])
-        humidity = float(hum_elem["Time"][0]["ElementValue"][0]["Value"])
-
-        print(f"從 API 取得溫度：{temp}°C、濕度：{humidity}%")
-        return temp, humidity
-
-    except Exception as e:
-        print("氣象 API 失敗：", e)
-        return 25.0, 60.0  # fallback 預設值
- 
 @app.route('/fetch_results_history')
 def fetch_results_history():
     start_date_str = request.args.get("startDate")
@@ -666,36 +631,59 @@ def fetch_results_history():
 
     try:
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-        end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d") + timedelta(days=1)
     except ValueError:
         return jsonify({"error": "日期格式錯誤"}), 400
 
+    docs = collection.find()
     dates = []
-    ambient_temp = []
-    ambient_humidity = []
-    ec_value = []
-    illumination = []
+    air_temp = []
+    air_humidity = []
+    pressure = []
+    lux = []
+    soil_temp = []
+    soil_vwc = []
+    soil_ec = []
 
-    # 從 API 取得平均溫度與濕度
-    avg_temp, avg_humidity = fetch_cwa_weather()
+    seen_ts = set()
 
-    current_date = start_date
-    while current_date <= end_date:
-        dates.append(current_date.strftime("%Y-%m-%d %H:%M"))
+    for doc in docs:
+        ts_str = doc.get("timestamp")
+        if not ts_str:
+            continue
 
-        ambient_temp.append(avg_temp)       # 用氣象API的值
-        ambient_humidity.append(avg_humidity)
-        ec_value.append(round(random.uniform(0.5, 3.5), 2))
-        illumination.append(random.randint(5000, 30000))
+        try:
+            ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            print(f"[解析錯誤] timestamp: {ts_str}，錯誤: {e}")
+            continue
 
-        current_date += timedelta(hours=6)
+        if start_date <= ts < end_date:
+            if ts_str in seen_ts:
+                continue  # 跳過重複
+            seen_ts.add(ts_str)
+
+            dates.append(ts_str)
+            air_temp.append(float(doc.get("air_temp", 0)))
+            air_humidity.append(float(doc.get("air_humidity", 0)))
+            pressure.append(float(doc.get("pressure", 0)))
+            lux.append(float(doc.get("lux", 0)))
+            soil_temp.append(float(doc.get("soil_temp", 0)))
+            soil_vwc.append(float(doc.get("soil_vwc", 0)))
+            soil_ec.append(float(doc.get("soil_ec", 0)))
+
+    print("dates count:", len(dates))
+    print("unique dates:", len(set(dates)))
 
     return jsonify({
         "dates": dates,
-        "ambientTemperature": ambient_temp,
-        "ambientHumidity": ambient_humidity,
-        "ecValue": ec_value,
-        "illumination": illumination
+        "airTemp": air_temp,
+        "airHumidity": air_humidity,
+        "pressure": pressure,
+        "lux": lux,
+        "soilTemp": soil_temp,
+        "soilVWC": soil_vwc,
+        "soilEC": soil_ec
     })
 
 # ====================== 蟲害總數 API ======================

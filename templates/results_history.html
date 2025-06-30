@@ -89,8 +89,8 @@
                 .then(res => res.json())
                 .then(envData => {
                     // 隨機補上溫濕度資料
-                    envData.ambientTemperature = envData.dates.map(() => parseFloat((Math.random() * 10 + 20).toFixed(1))); // 20~30°C
-                    envData.ambientHumidity = envData.dates.map(() => parseFloat((Math.random() * 40 + 40).toFixed(1)));    // 40~80%
+                    // envData.ambientTemperature = envData.dates.map(() => parseFloat((Math.random() * 10 + 20).toFixed(1))); // 20~30°C
+                    // envData.ambientHumidity = envData.dates.map(() => parseFloat((Math.random() * 40 + 40).toFixed(1)));    // 40~80%
 
                     renderChart(envData);
                 })
@@ -102,8 +102,9 @@
         function renderChart(data) {
             const ctx = document.getElementById("chartMain").getContext("2d");
 
-            if (window.chartMain instanceof Chart) {
+            if (window.chartMain && typeof window.chartMain.destroy === "function") {
                 window.chartMain.destroy();
+                window.chartMain = null;
             }
 
             window.chartMain = new Chart(ctx, {
@@ -113,33 +114,64 @@
                     datasets: [
                         {
                             label: "環境溫度 (°C)",
-                            data: data.ambientTemperature,
+                            data: data.airTemp,
                             borderColor: "#FF5733",
+                            backgroundColor: "#FF5733",
                             yAxisID: "y",
                             borderWidth: 2,
                             pointRadius: 3
                         },
                         {
                             label: "環境濕度 (%)",
-                            data: data.ambientHumidity,
+                            data: data.airHumidity,
                             borderColor: "#338AFF",
+                            backgroundColor: "#338AFF",
+                            yAxisID: "y1",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "大氣壓力 (hPa)",
+                            data: data.pressure,
+                            borderColor: "#00BFA5",
+                            backgroundColor: "#00BFA5",
+                            yAxisID: "y3",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "光照度 (lux)",
+                            data: data.lux,
+                            borderColor: "#FFC300",
+                            backgroundColor: "#FFC300",
+                            yAxisID: "y2",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "土壤溫度 (°C)",
+                            data: data.soilTemp,
+                            borderColor: "#8E44AD",
+                            backgroundColor: "#8E44AD",
+                            yAxisID: "y",
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: "土壤含水率 (%)",
+                            data: data.soilVWC,
+                            borderColor: "#3498DB",
+                            backgroundColor: "#3498DB",
                             yAxisID: "y1",
                             borderWidth: 2,
                             pointRadius: 3
                         },
                         {
                             label: "土壤 EC 值 (dS/m)",
-                            data: data.ecValue,
-                            borderColor: "#8D33FF",
+                            data: data.soilEC,
+                            borderColor: "#F39C12",
+                            backgroundColor: "#F39C12",
                             yAxisID: "y",
-                            borderWidth: 2,
-                            pointRadius: 3
-                        },
-                        {
-                            label: "光照度 (lux)",
-                            data: data.illumination,
-                            borderColor: "#FFA500",
-                            yAxisID: "y2",
                             borderWidth: 2,
                             pointRadius: 3
                         }
@@ -152,10 +184,10 @@
                         x: {
                             type: 'time',
                             time: {
-                                unit: 'day',
-                                tooltipFormat: 'yyyy/MM/dd',
+                                unit: 'hour',  // ← 改成 hour
+                                tooltipFormat: 'yyyy/MM/dd HH:mm',  // 顯示完整日期+時間
                                 displayFormats: {
-                                    day: 'MM/dd'
+                                    hour: 'MM/dd HH:mm'  // x 軸顯示格式
                                 }
                             },
                             title: {
@@ -186,7 +218,7 @@
                             position: 'right',
                             title: {
                                 display: true,
-                                text: "濕度 (%)",
+                                text: "濕度 / 含水率 (%)",
                                 font: { size: 14 }
                             },
                             grid: { drawOnChartArea: false },
@@ -205,6 +237,19 @@
                             grid: { drawOnChartArea: false },
                             min: 0,
                             max: 30000
+                        },
+                        y3: {
+                            type: 'linear',
+                            position: 'right',
+                            offset: true,
+                            title: {
+                                display: true,
+                                text: "大氣壓力 (hPa)",
+                                font: { size: 14 }
+                            },
+                            grid: { drawOnChartArea: false },
+                            min: 900,
+                            max: 1100
                         }
                     },
                     plugins: {
@@ -241,52 +286,6 @@
                 }
             });
         });
-
-        async function fetchWeatherDataRange(dates) {
-            const url = "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-035";
-            const auth = "CWA-233147B7-C268-43C1-BC20-C819EE149C00";
-            const location = "內埔鄉";
-
-            try {
-                const res = await fetch(`${url}?Authorization=${auth}&format=JSON&locationName=${location}&elementName=平均溫度,平均相對濕度`);
-                const data = await res.json();
-
-                const elements = data.records?.Locations?.[0]?.Location?.[0]?.WeatherElement;
-                if (!elements) throw new Error("找不到 WeatherElement");
-
-                const tempList = elements.find(e => e.ElementName === "平均溫度")?.Time || [];
-                const humList = elements.find(e => e.ElementName === "平均相對濕度")?.Time || [];
-
-                const tempResult = [];
-                const humResult = [];
-
-                dates.forEach(datetime => {
-                    const dateOnly = datetime.split(" ")[0]; // "2025-04-21"
-
-                    // 找出最接近這天的預報資料（只比對日期，不比時間）
-                    const temp = tempList.find(t => t.StartTime.startsWith(dateOnly));
-                    const hum = humList.find(h => h.StartTime.startsWith(dateOnly));
-
-                    const tempVal = parseFloat(temp?.ElementValue?.[0]?.Value);
-                    const humVal = parseFloat(hum?.ElementValue?.[0]?.Value);
-
-                    tempResult.push(!isNaN(tempVal) ? tempVal : 25);
-                    humResult.push(!isNaN(humVal) ? humVal : 60);
-                });
-
-                return {
-                    ambientTemperature: tempResult,
-                    ambientHumidity: humResult
-                };
-            } catch (err) {
-                console.error("氣象 API 多日查詢失敗：", err);
-                const fallback = Array(dates.length).fill(0);
-                return {
-                    ambientTemperature: fallback.map(() => 25),
-                    ambientHumidity: fallback.map(() => 60)
-                };
-            }
-        }
 
     </script>
 </body>
