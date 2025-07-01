@@ -268,12 +268,12 @@
       }
     
       // 清除表單
-      function clearForm() {
+      $("#clearForm").click(function () {
         $("#materialForm")[0].reset();
         $(".checkbox-group input[type=checkbox]").prop('checked', false);
         $(".other-wrapper").hide().find("input").val("");
-        $("#nameOther, #placeOther, #cropOther, #materialOther, #fertilizerOther").hide().val("");
-      }
+        $("#nameOther, #placeOther, #cropOther, #itemsOther, #materialOther, #fertilizerOther").hide().val("");
+      });
     
       // 填表人選擇其他顯示輸入
       $("#name").change(function () {

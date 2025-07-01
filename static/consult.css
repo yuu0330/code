@@ -6,7 +6,7 @@
     font-family: Arial, sans-serif;
 }
 
-/* ======== Navbar 導覽列 ======== */
+/* ======== Navbar 導覽列（桌機版） ======== */
 .navbar {
     background-color: rgba(76, 175, 80, 0.9);
     position: fixed;
@@ -20,6 +20,7 @@
     padding: 20px;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
     z-index: 100;
+    transition: all 0.3s ease;
 }
 
 .logo {
@@ -99,6 +100,86 @@
     z-index: 10;
 }
 
+/* ======== 響應式：手機版（小於 768px） ======== */
+.navbar .menu-toggle {
+    display: none;
+    cursor: pointer;
+    color: white;
+    font-size: 1.8em;
+    margin-left: auto;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+    }
+
+    .logo {
+        width: 60px; /* 手機版縮小 logo */
+        margin: 0;
+    }
+
+    .navbar .menu-toggle {
+        display: block;
+    }
+
+    .navbar nav {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        background-color: rgba(76, 175, 80, 0.95);
+        position: absolute;  /*漢堡選單點選後的選項會在下方*/
+        top: 100%;
+        left: 0;
+        margin-top: 0;
+        padding: 10px 0;
+    }
+
+    .navbar nav.show {
+        display: flex;
+    }
+
+    .navbar nav a,
+    .navbar .dropbtn {
+        color: white;
+        text-align: left;
+        padding: 12px 20px;
+    }
+
+    .navbar nav a:hover,
+    .navbar .dropbtn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .dropdown-content {
+        background-color: rgba(76, 175, 80, 0.95);
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    .dropdown-content a {
+        color: #333;
+        padding-left: 30px;
+    }
+
+    .content,
+    .stream-container {
+        margin-left: 0;
+        padding: 60px 20px 20px; /* 調整頂部空間 */
+    }
+
+    .button-row {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
 /* ======== 主內容區與標題 ======== */
 .content,
 .stream-container {
@@ -170,17 +251,15 @@ textarea {
     transition: background 0.3s;
 }
 
+#submitBtn:hover, #clearForm:hover {
+    background: #45a049;
+}
+
 @media (max-width: 768px) {
     .content,
     .stream-container {
         margin-left: 0;
-        padding: 20px;
-    }
-
-    .navbar {
-        width: 100%;
-        height: auto;
-        position: relative;
+        padding: 100px 20px 20px;
     }
 
     .button-row {

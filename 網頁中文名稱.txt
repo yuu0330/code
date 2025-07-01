@@ -1,0 +1,14 @@
+consult.html  病蟲害通報
+daily_trend.html   每日趨勢(可以不要)
+degree_history.html   害蟲監測歷史資料
+degree.html   多模態ai
+diagnosis.html   病蟲害通報紀錄
+index.html  登入畫面
+material_analyze.html   ICM分析
+material_history.html   資材使用紀錄
+material.html   農業資材-蟲害防治
+one.html   首頁
+results_history.html   環境歷史資料
+results.html   場域環境監測
+video.html   場域串流(可以不要)
+wingbeat_analysis.html  振翅頻率分析

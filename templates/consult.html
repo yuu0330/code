@@ -11,8 +11,9 @@
     <div class="navbar">
         <a href="/one">
             <img src="/static/標題圖.png" alt="Logo" class="logo">
-        </a>   
-        <nav>
+        </a>
+        <div class="menu-toggle" id="menuToggle">☰</div>   
+        <nav id="mainNav">
             <a href="/one">首頁</a>
             <div class="dropdown">
                 <button class="dropbtn">害蟲模組 ▼</button>
@@ -66,7 +67,7 @@
             <textarea id="description" name="description" required></textarea>
 
             <label for="image">上傳圖片：</label>
-            <input type="file" id="image" name="image" accept="image/*" capture="environment" required>
+            <input type="file" id="image" name="image" accept="image/*" required>
 
             <div class="submit-wrapper">
                 <button type="submit" id="submitBtn">提交</button>
@@ -74,58 +75,71 @@
             </div>
         </form>
 
-        <!-- <p id="status"></p> -->
+        <p id="status"></p>
     </div>
     <script>
         const form = document.getElementById('uploadForm');
         const statusText = document.getElementById('status');
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwbOXWbEkCkNj2SrMqSUfFQ5JINWUtcKYaErL6Thxj7lg6LS2zJbpO4R0HgEBTuNAKu1g/exec';
 
+        // 送出表單
         form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        statusText.textContent = "上傳中...";
+            e.preventDefault();
+            statusText.textContent = "上傳中...";
 
-        const crop = form.crop.value;
-        const name = form.name.value;
-        const quantity = form.quantity.value;
-        const description = form.description.value;
-        const imageFile = form.image.files[0];
+            const crop = form.crop.value;
+            const name = form.name.value;
+            const quantity = form.quantity.value;
+            const description = form.description.value;
+            const imageFile = form.image.files[0];
 
-        if (!imageFile) return alert("請選擇圖片");
-
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-            const base64Image = reader.result.split(",")[1];
-
-            const formData = new URLSearchParams();
-            formData.append("crop", crop);
-            formData.append("name", name);
-            formData.append("quantity", quantity);
-            formData.append("description", description);
-            formData.append("image", base64Image);
-
-            try {
-            const response = await fetch(GAS_URL, {
-                method: 'POST',
-                body: formData,
-            });
-            const text = await response.text();
-            statusText.textContent = text;
-            form.reset();
-            } catch (err) {
-            statusText.textContent = "上傳失敗：" + err.message;
+            if (!imageFile) {
+                alert("請選擇圖片");
+                statusText.textContent = "";
+                return;
             }
-        };
-        reader.readAsDataURL(imageFile);
+
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const base64Image = reader.result.split(",")[1];
+
+                const formData = new URLSearchParams();
+                formData.append("crop", crop);
+                formData.append("name", name);
+                formData.append("quantity", quantity);
+                formData.append("description", description);
+                formData.append("image", base64Image);
+
+                try {
+                    const response = await fetch(GAS_URL, {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const text = await response.text();
+                    alert("提交成功！");
+                    form.reset();
+                    statusText.textContent = ""; 
+                } catch (err) {
+                    statusText.textContent = "上傳失敗：" + err.message;
+                    alert("上傳失敗：" + err.message);
+                }
+            };
+            reader.readAsDataURL(imageFile);
         });
-        
-        // 清除表單功能
+
+        // 清除按鈕
         document.getElementById("clearForm").addEventListener("click", () => {
             form.reset();
             statusText.textContent = "";
         });
 
-        // 確保下拉選單可以展開
+        // 漢堡選單切換
+        document.getElementById("menuToggle").addEventListener("click", function() {
+            const nav = document.getElementById("mainNav");
+            nav.classList.toggle("show");
+        });
+
+        // 下拉選單展開/收合
         $(document).ready(function () {
             $(".dropbtn").click(function () {
                 $(".dropdown-content").not($(this).next()).slideUp(200);
@@ -138,6 +152,7 @@
                 }
             });
         });
+
     </script>    
 </body>
 </html>
