@@ -24,6 +24,7 @@ app.secret_key = "your_secret_key"
 
 # Google Apps Script API URL
 GOOGLE_SHEET_API = "https://script.google.com/macros/s/AKfycbx9RzI9Fbs7Zgva4OxsnLCj0HHnLjuDyOfO1J8m4nT8VbHvEbeTepEI-xV8mv_APm_P/exec"
+GOOGLE_SHEET_API_MEMBER = "https://script.google.com/macros/s/AKfycbwt1TKHssAHFlkVjMPiCYBoqholYyepc3T3rWogEXuYTIsm0Ics5uCV_3PsPe8xQpfHTg/exec"
 
 # 初始化 YOLO 模型
 model = YOLO("best.pt")
@@ -482,30 +483,28 @@ def detect_pests():
 
 @app.route("/register", methods=["POST"])
 def register():
-    """註冊 API"""
+    """註冊 API（將資料寫入 Google Sheets）"""
     data = request.json
     payload = {
         "action": "register",
         "name": data.get("name"),
         "phone": data.get("phone"),
         "account": data.get("account"),
-        "password": data.get("password"),
+        "pw": data.get("pw"),
         "size": data.get("size"),
     }
 
-    headers = {"Content-Type": "application/json"}
-    response = requests.post(GOOGLE_SHEET_API, json=payload, headers=headers)
-
     try:
+        response = requests.post(GOOGLE_SHEET_API_MEMBER, json=payload, headers={"Content-Type": "application/json"})
         result = response.json()
-    except ValueError:
-        return jsonify({"success": False, "message": "Google API 回應格式錯誤"}), 500
-
-    return jsonify(result)
+        return jsonify(result)
+    except Exception as e:
+        print("[錯誤] 註冊失敗：", e)
+        return jsonify({"success": False, "message": "註冊失敗，請稍後再試"}), 500
 
 @app.route("/login", methods=["POST"])
 def login():
-    """登入 API，驗證帳號與密碼"""
+    """登入 API（從 Google Sheets 檢查帳密）"""
     data = request.json
     payload = {
         "action": "login",
@@ -513,14 +512,13 @@ def login():
         "password": data.get("password"),
     }
 
-    headers = {"Content-Type": "application/json"}
-    response = requests.post(GOOGLE_SHEET_API, json=payload, headers=headers)
-
     try:
+        response = requests.post(GOOGLE_SHEET_API_MEMBER, json=payload, headers={"Content-Type": "application/json"})
         result = response.json()
         return jsonify(result)
-    except ValueError:
-        return jsonify({"success": False, "message": "API 回應格式錯誤"}), 500
+    except Exception as e:
+        print("[錯誤] 登入失敗：", e)
+        return jsonify({"success": False, "message": "登入失敗，請稍後再試"}), 500
 
 @app.route("/logout")
 def logout():
